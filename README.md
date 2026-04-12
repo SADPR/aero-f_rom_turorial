@@ -14,6 +14,7 @@ for 2D unsteady laminar viscous flow past a cylinder (Re = 100).
 - [3. AERO-F Manifold Loading and File Semantics](#3-aero-f-manifold-loading-and-file-semantics)
 - [4. Build Prerequisite for ANN/Torch](#4-build-prerequisite-for-anntorch)
 - [5. Baseline Pipeline: FOM \(\rightarrow\) POD-ROM \(\rightarrow\) HROM](#5-baseline-pipeline-fom-rightarrow-pod-rom-rightarrow-hrom)
+- [5.1 Linear n=10 Lower-Bound Pipeline](#51-linear-n10-lower-bound-pipeline)
 - [6. ANN Pipeline](#6-ann-pipeline)
 - [7. GP Pipeline](#7-gp-pipeline)
 - [8. RBF Pipeline](#8-rbf-pipeline)
@@ -215,6 +216,39 @@ cd ../run.post_hrom.9999.01
 bash run_post_hrom.sh
 ```
 
+
+### 5.1 Linear n=10 Lower-Bound Pipeline
+
+Use this as the reference lower bound: linear ROM/HROM with 10 retained coordinates.
+
+```bash
+# 1) Offline POD/hyper data for n=10
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline.9999_10.01
+./clean_offline_preprocessing_outputs.sh
+bash run_pod.sh
+bash run_hyper.sh
+
+# 2) HROM mesh preprocessing for n=10
+cd /home/kratos/aero-f_rom_turorial
+./clean.hrom_10.sh
+bash preprocess.hrom_10.sh
+
+# 3) PROM-10 online
+cd simulations/run.rom.9999_10
+./clean_rom_run_outputs.sh
+bash run_rom.sh
+
+# 4) HROM-10 online
+cd ../run.hrom.9999_10.01
+./clean_hrom_run_outputs.sh
+bash run_hrom.sh
+
+# 5) HROM-10 postprocessing run
+cd ../run.post_hrom.9999_10.01
+./clean_post_hrom_run_outputs.sh
+bash run_post_hrom.sh
+```
+
 ## 6. ANN Pipeline
 
 The ANN branch keeps the same structure as baseline, with ANN training inserted before ANN hyper/HROM runs.
@@ -403,6 +437,22 @@ Outputs for each run:
 - `<tag>_error_summary.csv`
 
 By default these are written to `simulations/postpro_compare/`.
+
+
+### 9.6 Lower-bound check: linear n=10 vs manifold models
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+python3 simulations/plot_compare_postpro.py \
+  --tag lower_bound_n10_vs_manifolds \
+  --model PROM-10:simulations/run.rom.9999_10/postpro \
+  --model HROM-10:simulations/run.post_hrom.9999_10.01/postpro \
+  --model HROM-ANN:simulations/run.post_hrom_ann.9999.01/postpro \
+  --model HROM-GP:simulations/run.post_hrom_gp.9999.01/postpro \
+  --model HROM-RBF:simulations/run.post_hrom_rbf.9999.01/postpro
+```
+
+This plot lets you quantify whether manifold models beat the linear \(n=10\) lower-bound in each signal.
 
 ## 10. ParaView (.exo)
 
