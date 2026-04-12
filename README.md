@@ -1,205 +1,437 @@
-AERO-F ROM tutorial (local setup on this machine)
+# AERO-F ROM Tutorial (Local)
 
-This tutorial builds a nonparametric, time-dependent PROM/HPROM for
-2D unsteady laminar viscous flow past a cylinder (Re = 100).
+A clean local workflow for building and running:
+- baseline POD-ROM/HROM,
+- ANN-manifold ROM/HROM,
+- GP-manifold ROM/HROM,
+- RBF-manifold ROM/HROM,
 
-Local paths and defaults used here
-- partnmesh: /home/kratos/aero-f_rom_turorial/partnmesh
-- sower: /home/kratos/aero-f_rom_turorial/sower
-- aerof: /home/kratos/aero-f/build_full/bin/aerof.opt
-- default local parallel size: 8 MPI ranks / 8 subdomains
+for 2D unsteady laminar viscous flow past a cylinder (Re = 100).
 
-AERO-F build prerequisite for ANN/Torch
+## Contents
+- [1. Overview](#1-overview)
+- [2. Paths and Naming](#2-paths-and-naming)
+- [3. AERO-F Manifold Loading and File Semantics](#3-aero-f-manifold-loading-and-file-semantics)
+- [4. Build Prerequisite for ANN/Torch](#4-build-prerequisite-for-anntorch)
+- [5. Baseline Pipeline: FOM \(\rightarrow\) POD-ROM \(\rightarrow\) HROM](#5-baseline-pipeline-fom-rightarrow-pod-rom-rightarrow-hrom)
+- [6. ANN Pipeline](#6-ann-pipeline)
+- [7. GP Pipeline](#7-gp-pipeline)
+- [8. RBF Pipeline](#8-rbf-pipeline)
+- [9. Unified Plotting and Error Comparison](#9-unified-plotting-and-error-comparison)
+- [10. ParaView (.exo)](#10-paraview-exo)
+- [11. Troubleshooting](#11-troubleshooting)
+- [12. Repository Note](#12-repository-note)
 
-- In `aero-f/SPLH/SCMatrix/scpblas.h`, keep `#define N_ 3` for the standard (non-Torch) build.
-- For the Torch/ANN build, switch that line to `#define AFN_ 3` (as noted in the file comment), then rebuild.
-- Recommended order: build standard AERO-F first (`N_`), then build Torch-enabled AERO-F (`AFN_` + `-DWITH_TORCH=ON`).
+## 1. Overview
 
-Quick start (current small-step workflow)
+Baseline reduced state:
+\[
+\mathbf{u}(t) \approx \bar{\mathbf{u}} + \mathbf{V}\,\mathbf{q}(t)
+\]
 
-1. Go to the tutorial root:
-   cd /home/kratos/aero-f_rom_turorial
+For manifold ROMs, reduced coordinates are split as:
+\[
+\mathbf{q} = \begin{bmatrix}\mathbf{q}_p \\ \mathbf{q}_s\end{bmatrix},
+\qquad
+\mathbf{q}_s = \mathcal{M}(\mathbf{q}_p)
+\]
 
-2. (Optional) Clean preprocess outputs:
-   ./clean_preprocess_outputs.sh
+and the state reconstruction is:
+\[
+\mathbf{u}(t) \approx \bar{\mathbf{u}} + \mathbf{V}
+\begin{bmatrix}
+\mathbf{q}_p \\
+\mathcal{M}(\mathbf{q}_p)
+\end{bmatrix}
+\]
 
-3. Preprocess mesh decomposition and sower files:
-   bash preprocess.sh
+with:
+- ANN: \(\mathcal{M} = \mathcal{N}_{\theta}\)
+- GP: \(\mathcal{M} = \mathcal{G}_{\theta}\)
+- RBF: \(\mathcal{M} = \mathcal{R}_{\theta}\)
 
-4. Verify preprocess outputs:
-   ls data/OUTPUT.8cpu data/OUTPUT.con sources/domain.top.dec.8
+## 2. Paths and Naming
 
-5. Run startup simulation (creates initial condition for unsteady runs):
-   cd simulations/run.fom.startup
-   ./clean_startup_run_outputs.sh
-   bash run_startup.sh
+Local defaults:
+- `partnmesh`: `/home/kratos/aero-f_rom_turorial/partnmesh`
+- `sower`: `/home/kratos/aero-f_rom_turorial/sower`
+- `aerof`: `/home/kratos/aero-f/build_full/bin/aerof.opt`
+- default local MPI size: `8`
 
-6. Verify startup outputs:
-   ls references/Solution.bin* | wc -l
-   tail -n 40 log.out
+Script naming convention:
+- `run_pod*.sh`: offline POD/base data generation
+- `run_*_trainer.sh`: manifold training
+- `run_hyper*.sh`: ECSW/hyper-reduction artifact build
+- `run_rom*.sh`: online ROM runs
+- `run_hrom*.sh`: online HROM runs
+- `run_post_hrom*.sh`: observable reconstruction from reduced coordinates
+- `clean_*_outputs.sh`: run-specific cleanup
 
-7. Run FOM simulation (collect snapshots):
-   cd ../run.fom
-   ./clean_fom_run_outputs.sh
-   bash run_fom.sh
+## 3. AERO-F Manifold Loading and File Semantics
 
-8. Verify FOM outputs:
-   ls snapshots/State.bin* | wc -l
-   tail -n 40 log.out
+### 3.1 Runtime selection logic (in AERO-F)
 
-9. Run offline preprocessing (POD basis + projection-error data):
-   cd ../run.offline.9999.01
-   ./clean_offline_preprocessing_outputs.sh
-   bash run_pod.sh
+When `UseGeneralManifold = True`, AERO-F requires **exactly one** of:
+- `GeneralManifoldNeuralNetName`
+- `GeneralManifoldRbfName`
+- `GeneralManifoldGpName`
 
-10. Verify offline outputs:
-    ls nonlinearrom/cluster0/state.svals
-    tail -n 40 log_rsvd.out
+If 0 or more than 1 are set, AERO-F exits with an error.
 
-11. Run ROM simulation (non-hyperreduced, POD basis check):
-    cd ../run.rom.9999
-    ./clean_rom_run_outputs.sh
-    bash run_rom.sh
+### 3.2 ANN manifold
 
-12. Verify ROM outputs:
-    ls postpro/ReducedCoords.out log/cputime.out
-    tail -n 40 log_35.out
+`GeneralManifoldNeuralNetName` points directly to a TorchScript file, typically:
+- `.../nonlinearrom/cluster0/traced_model.pt`
 
-13. Plot FOM vs ROM comparison curves:
-    cd /home/kratos/aero-f_rom_turorial
-    python3 simulations/plot_fom_vs_rom.py
-    ls simulations/postpro_compare/fom_vs_rom_timeseries.* simulations/postpro_compare/fom_vs_rom_error_summary.csv
+At runtime, AERO-F loads it with Torch and evaluates:
+\[
+\mathbf{q}_s = \mathcal{N}_{\theta}(\mathbf{q}_p)
+\]
 
-14. Build ParaView files (.exo) for FOM and ROM:
-    cd simulations/run.fom
-    bash postprocess_paraview.sh
+In this tutorial, input/output scaling is embedded in the ANN model itself by the trainer before `traced_model.pt` is exported.
 
-    cd ../run.rom.9999
-    bash postprocess_paraview.sh
+### 3.3 GP manifold
 
-15. Build HROM hyper-reduction artifacts (gappy files):
-    cd ../run.offline.9999.01
-    bash run_hyper.sh
+`GeneralManifoldGpName` points to a **directory prefix** containing:
+- `gp_precomputations.txt`  (\(\alpha\) matrix)
+- `gp_xTrain.txt`           (scaled training points)
+- `gp_stdscaling.txt`       (scaling metadata)
+- `gp_hyper.txt`            (`cval`, `length_scale`)
 
-16. Verify HROM hyper artifacts:
-    ls nonlinearrom/gappy.top nonlinearrom/cluster0/gappy.rob.reduced.xpost nonlinearrom/cluster0/gappy.ref.reduced.xpost
-    tail -n 40 log_hyper.out
+AERO-F computes:
+\[
+\mathbf{x} = \text{scale}(\mathbf{q}_p),
+\qquad
+k_i = c\left(1 + \sqrt{3}\,\frac{r_i}{\ell}\right)e^{-\sqrt{3}r_i/\ell},
+\qquad
+r_i = \lVert \mathbf{x} - \mathbf{x}_i \rVert_2
+\]
+\[
+\hat{\mathbf{y}} = \sum_{i=1}^{N_{\text{train}}} k_i\,\boldsymbol{\alpha}_i,
+\qquad
+\mathbf{q}_s = \text{unscale}(\hat{\mathbf{y}})
+\]
 
-17. Preprocess HROM mesh and split reduced quantities:
-    cd /home/kratos/aero-f_rom_turorial
-    bash preprocess.hrom.sh
+where:
+- \(\boldsymbol{\alpha} \in \mathbb{R}^{N_{\text{train}}\times n_s}\) is from `gp_precomputations.txt`
+- \(\mathbf{x}_i\) rows come from `gp_xTrain.txt`
+- `gp_hyper.txt` provides kernel amplitude \(c\) and length scale \(\ell\)
 
-18. Verify HROM preprocess outputs:
-    ls data.hrom.9999.01/OUTPUT.8cpu data.hrom.9999.01/OUTPUT.con
-    ls simulations/run.offline.9999.01/nonlinearrom/cluster0/gappy.rob.reduced.* | head
+`gp_stdscaling.txt` format:
+1. `input_size output_size`
+2. `scalingMethod` (`0` = standard, `1` = min-max)
+3. input `mu_in`
+4. input `sig_in`
+5. output `mu_out`
+6. output `sig_out`
 
-19. Run online HROM simulation:
-    cd simulations/run.hrom.9999.01
-    bash run_hrom.sh
+Interpretation:
+- `scalingMethod=0`: `mu`/`sig` = mean/std
+- `scalingMethod=1`: `mu`/`sig` = min/max
 
-20. Verify HROM outputs:
-    ls postpro/ReducedCoords.out
-    tail -n 40 log_hrom.out
+### 3.4 RBF manifold
 
-21. Run HROM postprocessing case (reconstruct observable outputs from HROM coordinates):
-    cd ../run.post_hrom.9999.01
-    ./clean_post_hrom_run_outputs.sh
-    bash run_post_hrom.sh
+`GeneralManifoldRbfName` points to a **directory prefix** containing:
+- `rbf_precomputations.txt`  (weight matrix \(W\))
+- `rbf_xTrain.txt`           (scaled training points)
+- `rbf_stdscaling.txt`       (scaling metadata)
+- `rbf_hyper.txt`            (`kernel_name`, `epsilon`)
 
-22. Verify post-HROM outputs:
-    ls postpro/LiftandDrag.out postpro/ProbePressure.out postpro/ProbeVelocity.out
-    tail -n 40 log_postpro_hrom.out
+AERO-F computes:
+\[
+\mathbf{x} = \text{scale}(\mathbf{q}_p),
+\qquad
+\hat{\mathbf{y}} = \sum_{i=1}^{N_{\text{train}}}
+\phi\!\left(\lVert \mathbf{x}-\mathbf{x}_i\rVert_2;\varepsilon\right)\mathbf{W}_i,
+\qquad
+\mathbf{q}_s = \text{unscale}(\hat{\mathbf{y}})
+\]
 
-23. Plot FOM vs ROM vs HROM comparison curves:
-    cd /home/kratos/aero-f_rom_turorial
-    python3 simulations/plot_fom_rom_hrom.py
-    ls simulations/postpro_compare/fom_vs_rom_vs_hrom_timeseries.* simulations/postpro_compare/fom_vs_rom_vs_hrom_error_summary.csv
+Available kernels in current AERO-F implementation:
+- `gaussian`
+- `imq`
+- `multiquadric`
+- `linear`
 
-ANN branch (u = Vq + VbarN(q))
+Note: there is no separate `beta` file in the current runtime path; the effective coefficients are stored in `W` (RBF) and `alpha` (GP).
 
-24. Create ANN offline base data (copy workflow from run.offline.9999.01):
-    cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_ann.9999.01
-    ./clean_offline_preprocessing_outputs.sh
-    bash run_pod_ann.sh
+## 4. Build Prerequisite for ANN/Torch
 
-25. Verify ANN offline base outputs:
-    ls nonlinearrom/cluster0/state.coords nonlinearrom/cluster0/state.svals
-    tail -n 40 log_rsvd.out
+In `aero-f/SPLH/SCMatrix/scpblas.h`:
+- standard non-Torch build: `#define N_ 3`
+- Torch/ANN build: `#define AFN_ 3`
 
-26. Train ANN manifold (creates s.coords and traced_model.pt):
-    bash run_ann_trainer.sh
+Recommended order:
+1. Build standard AERO-F (`N_`).
+2. Build Torch-enabled AERO-F (`AFN_` + `-DWITH_TORCH=ON`).
 
-27. Verify ANN training outputs:
-    ls nonlinearrom/cluster0/traced_model.pt nonlinearrom/cluster0/autoenc.pt nonlinearrom/cluster0/s.coords nonlinearrom/cluster0/log_ann_training.out
-    tail -n 40 nonlinearrom/cluster0/log_ann_training.out
+## 5. Baseline Pipeline: FOM \(\rightarrow\) POD-ROM \(\rightarrow\) HROM
 
-28. Test ANN manifold in ROM mode (no hyper-reduction):
-    cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_ann.9999
-    ./clean_rom_ann_run_outputs.sh
-    bash run_rom_ann.sh
+Run from repository root unless noted.
 
-29. Verify ROM-ANN outputs:
-    ls postpro/ReducedCoords.out log/cputime.out
-    tail -n 40 log_ann.out
+```bash
+cd /home/kratos/aero-f_rom_turorial
 
-30. (Optional) Compare FOM vs ROM-ANN quickly:
-    cd /home/kratos/aero-f_rom_turorial
-    python3 simulations/plot_fom_vs_rom.py --rom-dir simulations/run.rom_ann.9999/postpro --out-dir simulations/postpro_compare_ann
-    ls simulations/postpro_compare_ann/fom_vs_rom_timeseries.* simulations/postpro_compare_ann/fom_vs_rom_error_summary.csv
+# 1) Mesh preprocessing
+./clean_preprocess_outputs.sh
+bash preprocess.sh
 
-31. Build ANN-based hyper-reduction artifacts:
-    cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_ann.9999.01
-    bash run_hyper_ann.sh
+# 2) Startup
+cd simulations/run.fom.startup
+./clean_startup_run_outputs.sh
+bash run_startup.sh
 
-32. Verify ANN hyper artifacts:
-    ls nonlinearrom/gappy.top nonlinearrom/cluster0/gappy.rob.reduced.xpost nonlinearrom/cluster0/gappy.ref.reduced.xpost
-    tail -n 40 log_hyper_ann.out
+# 3) FOM snapshots
+cd ../run.fom
+./clean_fom_run_outputs.sh
+bash run_fom.sh
 
-33. Preprocess HROM-ANN mesh and split reduced quantities:
-    cd /home/kratos/aero-f_rom_turorial
-    bash preprocess.hrom_ann.sh
+# 4) Offline POD/base data
+cd ../run.offline.9999.01
+./clean_offline_preprocessing_outputs.sh
+bash run_pod.sh
 
-34. Verify HROM-ANN preprocess outputs:
-    ls data.hrom_ann.9999.01/OUTPUT.8cpu data.hrom_ann.9999.01/OUTPUT.con
+# 5) ROM (non-hyperreduced)
+cd ../run.rom.9999
+./clean_rom_run_outputs.sh
+bash run_rom.sh
 
-35. Run online HROM-ANN simulation:
-    cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_ann.9999.01
-    bash run_hrom_ann.sh
+# 6) Offline ECSW/hyper artifacts
+cd ../run.offline.9999.01
+bash run_hyper.sh
 
-36. Verify HROM-ANN outputs:
-    ls postpro/ReducedCoords.out
-    tail -n 40 log_hrom_ann.out
+# 7) HROM preprocess
+cd /home/kratos/aero-f_rom_turorial
+bash preprocess.hrom.sh
 
-37. Run HROM-ANN postprocessing case:
-    cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_ann.9999.01
-    ./clean_post_hrom_ann_run_outputs.sh
-    bash run_post_hrom_ann.sh
+# 8) HROM online
+cd simulations/run.hrom.9999.01
+./clean_hrom_run_outputs.sh
+bash run_hrom.sh
 
-38. Verify post-HROM-ANN outputs:
-    ls postpro/LiftandDrag.out postpro/ProbePressure.out postpro/ProbeVelocity.out
-    tail -n 40 log_postpro_hrom_ann.out
+# 9) HROM postprocessing run
+cd ../run.post_hrom.9999.01
+./clean_post_hrom_run_outputs.sh
+bash run_post_hrom.sh
+```
 
-39. Plot FOM vs ROM vs HROM vs HROM-ANN comparison curves:
-    cd /home/kratos/aero-f_rom_turorial
-    python3 simulations/plot_fom_rom_hrom_ann.py
-    ls simulations/postpro_compare/fom_vs_rom_vs_hrom_vs_hrom_ann_timeseries.* simulations/postpro_compare/fom_vs_rom_vs_hrom_vs_hrom_ann_error_summary.csv
+## 6. ANN Pipeline
 
-Expected notes
-- You should see 8-way decomposition from preprocess.
-- Startup/FOM/offline/ROM/HROM/post-HROM runs should use OpenMPI launcher (/usr/bin/mpirun.openmpi).
-- If you see "not enough slots" from OpenMPI, reduce NP in the relevant run script to 8.
-- ANN training in `run.offline_ann.9999.01` uses `run.offline_ann.9999.01/prom-ann-trainer.py`; `run_ann_trainer.sh` auto-builds `s.coords` from `state.coords` by dropping the first header line (after running `run_pod_ann.sh`).
-- Boundary-face orientation warnings can appear and are usually non-fatal.
+The ANN branch keeps the same structure as baseline, with ANN training inserted before ANN hyper/HROM runs.
 
-Original tutorial sequence (full pipeline)
-1. preprocess.sh
-2. simulations/run.fom.startup (run_startup.sh)
-3. simulations/run.fom (run_fom.sh)
-4. simulations/run.offline.9999.01 (run_pod.sh)
-5. preprocess.hrom.sh
-6. simulations/run.rom.9999 (run_rom.sh)
-7. simulations/run.hrom.9999.01 (run_hrom.sh)
-8. simulations/run.post_hrom.9999.01 (run_post_hrom.sh)
+```bash
+# 1) ANN offline base (same logic as baseline offline POD)
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_ann.9999.01
+./clean_offline_preprocessing_outputs.sh
+bash run_pod_ann.sh
 
-Repository note
-- This repository includes `xp2exo_bundle/` (binary + compatible libraries), created from Sherlock, to support local `.exo` postprocessing.
+# 2) ANN trainer (auto-builds s.coords from state.coords)
+bash run_ann_trainer.sh
+
+# 3) ROM-ANN
+cd ../run.rom_ann.9999
+./clean_rom_ann_run_outputs.sh
+bash run_rom_ann.sh
+
+# 4) ANN hyper artifacts
+cd ../run.offline_ann.9999.01
+./clean_offline_ann_hyper_outputs.sh
+bash run_hyper_ann.sh
+
+# 5) HROM-ANN preprocess
+cd /home/kratos/aero-f_rom_turorial
+./clean.hrom_ann.sh
+bash preprocess.hrom_ann.sh
+
+# 6) HROM-ANN online
+cd simulations/run.hrom_ann.9999.01
+./clean_hrom_ann_run_outputs.sh
+bash run_hrom_ann.sh
+
+# 7) HROM-ANN postprocessing run
+cd ../run.post_hrom_ann.9999.01
+./clean_post_hrom_ann_run_outputs.sh
+bash run_post_hrom_ann.sh
+```
+
+## 7. GP Pipeline
+
+GP follows the same high-level logic as ANN, but it **reuses baseline offline POD outputs** from `run.offline.9999.01`.
+
+```bash
+# 0) Ensure baseline offline POD exists first
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline.9999.01
+bash run_pod.sh
+
+# 1) Copy/sync baseline offline data into GP folder
+cd ../run.offline_gp.9999.01
+bash prepare_from_pod_base_gp.sh
+
+# 2) Train GP manifold
+# Default trainer: prom-gp-trainer_std.py
+# Optional: GP_TRAINER=prom-gp-trainer_min_max.py bash run_gp_trainer.sh
+bash run_gp_trainer.sh
+
+# 3) Build GP hyper artifacts
+bash run_hyper_gp.sh
+
+# 4) GP HROM preprocess
+cd /home/kratos/aero-f_rom_turorial
+./clean.hrom_gp.sh
+bash preprocess.hrom_gp.sh
+
+# 5) ROM-GP
+cd simulations/run.rom_gp.9999
+./clean_rom_gp_run_outputs.sh
+bash run_rom_gp.sh
+
+# 6) HROM-GP online
+cd ../run.hrom_gp.9999.01
+./clean_hrom_gp_run_outputs.sh
+bash run_hrom_gp.sh
+
+# 7) HROM-GP postprocessing run
+cd ../run.post_hrom_gp.9999.01
+./clean_post_hrom_gp_run_outputs.sh
+bash run_post_hrom_gp.sh
+```
+
+## 8. RBF Pipeline
+
+RBF follows the same pattern as GP/ANN, and also reuses baseline offline POD outputs.
+
+```bash
+# 0) Ensure baseline offline POD exists first
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline.9999.01
+bash run_pod.sh
+
+# 1) Copy/sync baseline offline data into RBF folder
+cd ../run.offline_rbf.9999.01
+bash prepare_from_pod_base_rbf.sh
+
+# 2) Train RBF manifold
+bash run_rbf_trainer.sh
+
+# 3) Build RBF hyper artifacts
+bash run_hyper_rbf.sh
+
+# 4) RBF HROM preprocess
+cd /home/kratos/aero-f_rom_turorial
+./clean.hrom_rbf.sh
+bash preprocess.hrom_rbf.sh
+
+# 5) ROM-RBF
+cd simulations/run.rom_rbf.9999
+./clean_rom_rbf_run_outputs.sh
+bash run_rom_rbf.sh
+
+# 6) HROM-RBF online
+cd ../run.hrom_rbf.9999.01
+./clean_hrom_rbf_run_outputs.sh
+bash run_hrom_rbf.sh
+
+# 7) HROM-RBF postprocessing run
+cd ../run.post_hrom_rbf.9999.01
+./clean_post_hrom_rbf_run_outputs.sh
+bash run_post_hrom_rbf.sh
+```
+
+## 9. Unified Plotting and Error Comparison
+
+Use one script for all comparisons:
+- `simulations/plot_compare_postpro.py`
+
+### 9.1 Baseline (ROM + HROM)
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+python3 simulations/plot_compare_postpro.py \
+  --tag baseline \
+  --model ROM:simulations/run.rom.9999/postpro \
+  --model HROM:simulations/run.post_hrom.9999.01/postpro
+```
+
+### 9.2 ANN
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+python3 simulations/plot_compare_postpro.py \
+  --tag ann \
+  --model ROM:simulations/run.rom.9999/postpro \
+  --model HROM:simulations/run.post_hrom.9999.01/postpro \
+  --model HROM-ANN:simulations/run.post_hrom_ann.9999.01/postpro
+```
+
+### 9.3 GP
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+python3 simulations/plot_compare_postpro.py \
+  --tag gp \
+  --model ROM:simulations/run.rom.9999/postpro \
+  --model HROM:simulations/run.post_hrom.9999.01/postpro \
+  --model HROM-GP:simulations/run.post_hrom_gp.9999.01/postpro
+```
+
+### 9.4 RBF
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+python3 simulations/plot_compare_postpro.py \
+  --tag rbf \
+  --model ROM:simulations/run.rom.9999/postpro \
+  --model HROM:simulations/run.post_hrom.9999.01/postpro \
+  --model HROM-RBF:simulations/run.post_hrom_rbf.9999.01/postpro
+```
+
+### 9.5 All models in one figure
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+python3 simulations/plot_compare_postpro.py \
+  --tag all_models \
+  --model ROM:simulations/run.rom.9999/postpro \
+  --model HROM:simulations/run.post_hrom.9999.01/postpro \
+  --model HROM-ANN:simulations/run.post_hrom_ann.9999.01/postpro \
+  --model HROM-GP:simulations/run.post_hrom_gp.9999.01/postpro \
+  --model HROM-RBF:simulations/run.post_hrom_rbf.9999.01/postpro
+```
+
+Outputs for each run:
+- `<tag>_timeseries.png`
+- `<tag>_timeseries.pdf`
+- `<tag>_error_summary.csv`
+
+By default these are written to `simulations/postpro_compare/`.
+
+## 10. ParaView (.exo)
+
+FOM/ROM `.exo` conversion:
+
+```bash
+cd /home/kratos/aero-f_rom_turorial/simulations/run.fom
+bash postprocess_paraview.sh
+
+cd ../run.rom.9999
+bash postprocess_paraview.sh
+
+cd ../run.rom_ann.9999
+bash postprocess_paraview.sh
+```
+
+## 11. Troubleshooting
+
+- OpenMPI slots error:
+  - reduce `NP` in run scripts, or match your machine core count.
+- `USE_TORCH is not defined`:
+  - rebuild AERO-F with `WITH_TORCH=ON` and `AFN_` in `scpblas.h`.
+- Missing `DEFAULT.PKG`:
+  - run the corresponding `prepare_from_pod_base_*.sh`.
+- Missing gappy files during preprocess:
+  - run the corresponding `run_hyper*.sh` first.
+- Boundary-face orientation warnings:
+  - common and often non-fatal.
+
+## 12. Repository Note
+
+This repository includes `xp2exo_bundle/` (binary + compatible libraries), created from Sherlock, to support local `.exo` postprocessing.

@@ -1,7 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
-# Example usage of the RBF training script, redirecting output to log_rbf_training.out.
-
-# Make sure you have Python 3 
-
-python3 prom-rbf-trainer.py |& tee log_rbf_training.out
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_rbf.9999.01
+bash run_rbf_trainer.sh
