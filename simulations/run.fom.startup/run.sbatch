@@ -5,4 +5,4 @@
 #SBATCH --partition=cfarhat
 #SBATCH --ntasks-per-node=8
 
-./run.sh
+./run_startup.sh

@@ -23,7 +23,7 @@ def read_inputs_and_labels():
         ('run.fom/postpro', 'HDM'),
         ('run.rom.9999_10/postpro', 'PROM 10'),
         ('run.post_hrom.9999.01/postpro', 'HPROM 35'),
-        ('run.post_hrom_nn.9999.01/postpro', 'HPROM-ANN 10 + 25'),
+        ('run.post_hrom_ann.9999.01/postpro', 'HPROM-ANN 10 + 25'),
         ('run.post_hrom_rbf.9999.01/postpro', 'HPROM-RBF 10 + 25'),
         ('run.rom_gp.9999/postpro', 'PROM-GP 10 + 25')
     ]

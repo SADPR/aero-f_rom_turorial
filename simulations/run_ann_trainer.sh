@@ -1,8 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
-# Example usage of the ANN training script, redirecting output to log_ann_training.out.
-
-# Make sure you have Python 3 + PyTorch environment activated
-# e.g. source activate myenv or conda activate myenv
-
-python3 prom-ann-trainer.py |& tee log_ann_training.out
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_ann.9999.01
+bash run_ann_trainer.sh

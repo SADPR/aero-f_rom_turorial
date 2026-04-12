@@ -2,7 +2,7 @@
 
 NS=16
 
-XP2EXO_EXECUTABLE=/home/groups/cfarhat/bin/xp2exo #/home/sadpr/aero-f/bin/xp2exo
+XP2EXO_EXECUTABLE=/home/kratos/aero-f_rom_turorial/xp2exo #/home/kratos/aero-f_rom_turorial/xp2exo
 
 # Convert fluid outputs to .exo format
 $XP2EXO_EXECUTABLE ../../sources/domain.top fluid_solution.exo \

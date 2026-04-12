@@ -1,6 +1,6 @@
 #!/bin/bash
-PARTNMESH_EXECUTABLE=/home/kratos/partnmesh
-SOWER_EXECUTABLE=/home/kratos/sower
+PARTNMESH_EXECUTABLE=/home/kratos/aero-f_rom_turorial/partnmesh
+SOWER_EXECUTABLE=/home/kratos/aero-f_rom_turorial/sower
 
 # Specify number of subdomains, processes, clusters
 NSUB=8

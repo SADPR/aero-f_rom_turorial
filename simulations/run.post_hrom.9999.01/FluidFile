@@ -26,10 +26,6 @@ under Output {
     Frequency = 5;
     Prefix = "results/";
     LiftandDrag = "../postpro/LiftandDrag.out";
-    //Pressure = "Pressure.bin";
-    //Velocity = "Velocity.bin";
-    //Vorticity = "Vorticity.bin";
-    //CPUTiming = "../log/cputime.out";
   }
   under Restart {
     Frequency = 100;

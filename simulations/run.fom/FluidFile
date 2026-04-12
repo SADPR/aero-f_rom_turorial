@@ -7,8 +7,6 @@ under Problem {
 under Input {
   GeometryPrefix = "../../data/OUTPUT";
   Solution = "../run.fom.startup/references/Solution.bin";
-  //Solution = "references/Solution.bin";
-  //RestartData = "references/Restart.data";
 }
 
 under Output {
