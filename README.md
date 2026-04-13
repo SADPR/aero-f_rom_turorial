@@ -17,6 +17,7 @@ for 2D unsteady laminar viscous flow past a cylinder ($Re=100$).
 - [PROM-GPR](#prom-gpr)
 - [Optional: Lower-Bound Comparison (Linear PROM n=10)](#optional-lower-bound-comparison-linear-prom-n10)
 - [Unified Plotting](#unified-plotting)
+- [Machine-Learning Regression (Aero-F Notation)](#machine-learning-regression-aero-f-notation)
 - [Manifold File Semantics](#manifold-file-semantics)
 - [Trainer Notes (Tunable)](#trainer-notes-tunable)
 - [ParaView (.exo)](#paraview-exo)
@@ -394,6 +395,138 @@ All outputs are written in `simulations/postpro_compare/` as:
 - 5 PDF files: `<tag>_<signal>.pdf`
 - 1 CSV summary: `<tag>_error_summary.csv`
 
+## Machine-Learning Regression (Aero-F Notation)
+
+This section summarizes the ANN/GPR/RBF manifold map used in this repository with consistent notation.
+
+### Snapshot coordinates and training pairs
+
+Given snapshot states $\{\mathbf{u}^s\}_{s=1}^{N_s}$ and reference state $\mathbf{u}_{\mathrm{ref}}$, define
+
+$$
+\mathbf{q}^s = \mathbf{V}^T(\mathbf{u}^s-\mathbf{u}_{\mathrm{ref}}),\qquad
+\bar{\mathbf{q}}^s = \bar{\mathbf{V}}^T(\mathbf{u}^s-\mathbf{u}_{\mathrm{ref}}).
+$$
+
+In this tutorial, training rows in `s.coords` are split as
+
+$$
+[\mathbf{q}^s\;\;\bar{\mathbf{q}}^s],\qquad \mathbf{q}^s\in\mathbb{R}^{n},\;\bar{\mathbf{q}}^s\in\mathbb{R}^{\bar n},
+$$
+
+with default $n=10$, $\bar n=25$ for ANN/RBF/GPR-10 workflows.
+
+The closure map is
+
+$$
+\bar{\mathbf{q}} = \mathcal{N}(\mathbf{q}),
+$$
+
+and the ROM state approximation is
+
+$$
+\mathbf{u}\approx \mathbf{u}_{\mathrm{ref}}+\mathbf{V}\mathbf{q}+\bar{\mathbf{V}}\mathcal{N}(\mathbf{q}).
+$$
+
+### ANN regression
+
+ANN learns $\mathcal{N}(\mathbf{q};\eta)$ from pairs $(\mathbf{q}^s,\bar{\mathbf{q}}^s)$ by minimizing
+
+$$
+\eta^\star=\arg\min_{\eta'}\frac{1}{N_{\mathrm{td}}}\sum_{s=1}^{N_{\mathrm{td}}}
+\left\|\bar{\mathbf{q}}^s-\mathcal{N}(\mathbf{q}^s;\eta')\right\|_2^2.
+$$
+
+`prom-ann-trainer.py` exports TorchScript `traced_model.pt` used online by AERO-F.
+
+### GPR regression
+
+Build training matrices
+
+$$
+\mathbf{Q}_{\mathrm{td}}=
+\begin{bmatrix}
+(\mathbf{q}^1)^T\\ \vdots\\ (\mathbf{q}^{N_{\mathrm{td}}})^T
+\end{bmatrix},\qquad
+\bar{\mathbf{Q}}_{\mathrm{td}}=
+\begin{bmatrix}
+(\bar{\mathbf{q}}^1)^T\\ \vdots\\ (\bar{\mathbf{q}}^{N_{\mathrm{td}}})^T
+\end{bmatrix}.
+$$
+
+With kernel matrix $\mathbf{K}$ and nugget $\sigma_{ng}^2$, precompute
+
+$$
+\boldsymbol{\alpha}=
+\left(\mathbf{K}(\mathbf{Q}_{\mathrm{td}},\mathbf{Q}_{\mathrm{td}})
++\sigma_{ng}^2\mathbf{I}\right)^{-1}\bar{\mathbf{Q}}_{\mathrm{td}}.
+$$
+
+Online prediction:
+
+$$
+\mathcal{N}(\mathbf{q}^\star)^T=
+\mathbf{K}(\mathbf{q}^\star,\mathbf{Q}_{\mathrm{td}})\,\boldsymbol{\alpha}.
+$$
+
+For Mat\'ern-$3/2$,
+
+$$
+K(\mathbf{x},\mathbf{x}')=\sigma_f^2\left(1+\frac{\sqrt{3}\|\mathbf{x}-\mathbf{x}'\|_2}{\ell}\right)
+\exp\!\left(-\frac{\sqrt{3}\|\mathbf{x}-\mathbf{x}'\|_2}{\ell}\right).
+$$
+
+Analytical Jacobian used in implicit ROM context:
+
+$$
+\frac{\partial \mathcal{N}}{\partial \mathbf{q}^\star}
+=\boldsymbol{\alpha}^T\mathbf{J}_K(\mathbf{q}^\star),\qquad
+[\mathbf{J}_K]_{si}=\frac{\partial K(\mathbf{q}^\star,\mathbf{q}^s)}{\partial q_i^\star}.
+$$
+
+### RBF interpolation
+
+RBF uses the same offline/online structure in deterministic form:
+
+$$
+\left(\mathbf{K}(\mathbf{Q}_{\mathrm{td}},\mathbf{Q}_{\mathrm{td}})
++\lambda\mathbf{I}\right)\boldsymbol{\beta}
+=\bar{\mathbf{Q}}_{\mathrm{td}},
+$$
+
+$$
+\mathcal{N}(\mathbf{q}^\star)^T=
+\mathbf{K}(\mathbf{q}^\star,\mathbf{Q}_{\mathrm{td}})\,\boldsymbol{\beta},
+\qquad
+[\mathbf{K}(\mathbf{q}^\star,\mathbf{Q}_{\mathrm{td}})]_s=
+\phi(\|\mathbf{q}^\star-\mathbf{q}^s\|_2).
+$$
+
+Common kernels:
+
+$$
+\phi_{\mathrm{gauss}}(r)=e^{-\epsilon^2r^2},\quad
+\phi_{\mathrm{mq}}(r)=\sqrt{1+(\epsilon r)^2},\quad
+\phi_{\mathrm{imq}}(r)=\frac{1}{\sqrt{1+(\epsilon r)^2}}.
+$$
+
+Analytical Jacobian:
+
+$$
+\frac{\partial \mathcal{N}}{\partial \mathbf{q}^\star}
+=\boldsymbol{\beta}^T\mathbf{J}_\phi(\mathbf{q}^\star),
+\qquad
+[\mathbf{J}_\phi]_{si}
+=\phi'(\|\mathbf{q}^\star-\mathbf{q}^s\|_2)\,
+\frac{q_i^\star-q_i^s}{\|\mathbf{q}^\star-\mathbf{q}^s\|_2}.
+$$
+
+For Gaussian RBF:
+
+$$
+\phi'(r)=-2\epsilon^2r\,e^{-\epsilon^2r^2}.
+$$
+
 ## Manifold File Semantics
 
 AERO-F runtime expects exactly one manifold option when `UseGeneralManifold=True`:
@@ -405,38 +538,16 @@ AERO-F runtime expects exactly one manifold option when `UseGeneralManifold=True
 - `.../nonlinearrom/cluster0/traced_model.pt`
 
 ### RBF runtime files
-- `rbf_precomputations.txt` (matrix $W$)
+- `rbf_precomputations.txt` (matrix $\boldsymbol{\beta}$)
 - `rbf_xTrain.txt`
 - `rbf_stdscaling.txt`
-- `rbf_hyper.txt` (`kernel_name`, $\varepsilon$)
-
-Runtime model form:
-
-$$
-\hat{\mathbf{y}} = \sum_{i=1}^{N_{\text{train}}} \phi\!\left(\|\mathbf{x}-\mathbf{x}_i\|_2;\varepsilon\right)\mathbf{W}_i,
-\qquad
-\mathbf{q}_s = \text{unscale}(\hat{\mathbf{y}})
-$$
+- `rbf_hyper.txt` (`kernel_name`, $\epsilon$)
 
 ### GPR runtime files
-- `gp_precomputations.txt` (matrix $\alpha$)
+- `gp_precomputations.txt` (matrix $\boldsymbol{\alpha}$)
 - `gp_xTrain.txt`
 - `gp_stdscaling.txt`
 - `gp_hyper.txt` ($c$, $\ell$)
-
-Kernel used in current runtime:
-
-$$
-k_i = c\left(1 + \sqrt{3}\,\frac{r_i}{\ell}\right)e^{-\sqrt{3}r_i/\ell},
-\qquad
-r_i = \|\mathbf{x}-\mathbf{x}_i\|_2
-$$
-
-$$
-\hat{\mathbf{y}} = \sum_{i=1}^{N_{\text{train}}} k_i\,\alpha_i,
-\qquad
-\mathbf{q}_s = \text{unscale}(\hat{\mathbf{y}})
-$$
 
 
 ## Trainer Notes (Tunable)
