@@ -94,7 +94,7 @@ under Space {
 
 under Time {
   MaxIts = 10000;
-  MaxTime = 0.1;
+  MaxTime = 150.0;
   TimeStep = 0.1;
   Type = Implicit;
   under Implicit {
