@@ -541,6 +541,11 @@ AERO-F runtime expects exactly one manifold option when `UseGeneralManifold=True
 - `GeneralManifoldRbfName`
 - `GeneralManifoldGpName`
 
+Path behavior is different by model type:
+- ANN (`GeneralManifoldNeuralNetName`): provide the full path to the model file (`.pt`).
+- RBF/GPR (`GeneralManifoldRbfName`, `GeneralManifoldGpName`): provide only the directory path; AERO-F loads fixed filenames from that directory.
+- Therefore, keep the expected RBF/GPR filenames unchanged (`rbf_*.txt`, `gp_*.txt`).
+
 ### ANN runtime file
 - `.../nonlinearrom/cluster0/traced_model.pt`
 
