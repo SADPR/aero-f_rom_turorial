@@ -29,14 +29,14 @@ for 2D unsteady laminar viscous flow past a cylinder ($Re=100$).
 Linear case:
 
 $$
-\mathbf{u}(t)\approx \mathbf{u}_{\mathrm{ref}}+\mathbf{V}\,\mathbf{q}(t)
+\mathbf{u}(t)\approx \mathbf{u}_{\mathrm{ref}}+\mathbf{V}\mathbf{q}(t)
 $$
 
 Quadratic case:
 
 $$
-\mathbf{u}(t)\approx \mathbf{u}_{\mathrm{ref}}+\mathbf{V}\,\mathbf{q}(t)
-+\tfrac{1}{2}\,\mathbf{H}\bigl(\mathbf{q}(t)\otimes\mathbf{q}(t)\bigr)
+\mathbf{u}(t)\approx \mathbf{u}_{\mathrm{ref}}+\mathbf{V}\mathbf{q}(t)
++\tfrac{1}{2}\mathbf{H}\bigl(\mathbf{q}(t)\otimes\mathbf{q}(t)\bigr)
 $$
 
 General manifold case:
@@ -44,7 +44,7 @@ General manifold case:
 $$
 \bar{\mathbf{q}}=\mathcal{M}(\mathbf{q}),
 \qquad
-\mathbf{u}(t)\approx \mathbf{u}_{\mathrm{ref}}+\mathbf{V}\,\mathbf{q}(t)+\bar{\mathbf{V}}\,\bar{\mathbf{q}}(t)
+\mathbf{u}(t)\approx \mathbf{u}_{\mathrm{ref}}+\mathbf{V}\mathbf{q}(t)+\bar{\mathbf{V}}\bar{\mathbf{q}}(t)
 $$
 
 with:
@@ -467,7 +467,7 @@ Online prediction:
 
 $$
 \mathcal{N}(\mathbf{q}^\star)^T=
-\mathbf{K}(\mathbf{q}^\star,\mathbf{Q}_{\mathrm{td}})\,\boldsymbol{\alpha}.
+\mathbf{K}(\mathbf{q}^\star,\mathbf{Q}_{\mathrm{td}})\boldsymbol{\alpha}.
 $$
 
 For Mat\'ern-$3/2$,
@@ -496,8 +496,14 @@ $$
 $$
 
 $$
+\boldsymbol{\beta}=
+\left(\mathbf{K}(\mathbf{Q}_{\mathrm{td}},\mathbf{Q}_{\mathrm{td}})
++\lambda\mathbf{I}\right)^{-1}\bar{\mathbf{Q}}_{\mathrm{td}}.
+$$
+
+$$
 \mathcal{N}(\mathbf{q}^\star)^T=
-\mathbf{K}(\mathbf{q}^\star,\mathbf{Q}_{\mathrm{td}})\,\boldsymbol{\beta},
+\mathbf{K}(\mathbf{q}^\star,\mathbf{Q}_{\mathrm{td}})\boldsymbol{\beta},
 \qquad
 [\mathbf{K}(\mathbf{q}^\star,\mathbf{Q}_{\mathrm{td}})]_s=
 \phi(\|\mathbf{q}^\star-\mathbf{q}^s\|_2).
@@ -518,14 +524,14 @@ $$
 =\boldsymbol{\beta}^T\mathbf{J}_\phi(\mathbf{q}^\star),
 \qquad
 [\mathbf{J}_\phi]_{si}
-=\phi'(\|\mathbf{q}^\star-\mathbf{q}^s\|_2)\,
+=\phi'(\|\mathbf{q}^\star-\mathbf{q}^s\|_2)
 \frac{q_i^\star-q_i^s}{\|\mathbf{q}^\star-\mathbf{q}^s\|_2}.
 $$
 
 For Gaussian RBF:
 
 $$
-\phi'(r)=-2\epsilon^2r\,e^{-\epsilon^2r^2}.
+\phi'(r)=-2\epsilon^2re^{-\epsilon^2r^2}.
 $$
 
 ## Manifold File Semantics
