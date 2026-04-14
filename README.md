@@ -11,6 +11,7 @@ for 2D unsteady laminar viscous flow past a cylinder ($Re=100$).
 - [Overview](#overview)
 - [Common Setup](#common-setup)
 - [Linear PROM](#linear-prom)
+- [Local Linear PROM (4 Clusters)](#local-linear-prom-4-clusters)
 - [Quadratic PROM](#quadratic-prom)
 - [PROM-ANN](#prom-ann)
 - [PROM-RBF](#prom-rbf)
@@ -126,6 +127,56 @@ python3 simulations/plot_compare_postpro.py \
 ```
 
 ![HPROM-35 vs HDM (Drag)](simulations/postpro_compare/hprom_35_vs_hdm_drag_lx.png)
+
+
+## Local Linear PROM (4 Clusters)
+
+This is the **local linear** workflow (multi-cluster local PROM/HROM).  
+Current local branch files are set to `NumClusters = 4`.
+
+```bash
+# 1) Offline local POD
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local.9999.01
+./clean_offline_local_preprocessing_outputs.sh
+bash run_pod_local.sh
+
+# 2) Build local ECSW artifacts
+./clean_offline_local_hyper_outputs.sh
+bash run_hyper_local.sh
+
+# 3) HROM-local preprocess (splits all cluster bases/references)
+cd /home/kratos/aero-f_rom_turorial
+./clean.hrom_local.sh
+NSUB=8 bash preprocess.hrom_local.sh
+
+# 4) Local ROM online
+cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local.9999
+./clean_rom_local_run_outputs.sh
+bash run_rom_local.sh
+
+# 5) Local HROM online
+cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_local.9999.01
+./clean_hrom_local_run_outputs.sh
+bash run_hrom_local.sh
+
+# 6) Local HROM postprocessing
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local.9999.01
+./clean_post_hrom_local_run_outputs.sh
+bash run_post_hrom_local.sh
+```
+
+Quick plot vs HDM for this section:
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+python3 simulations/plot_compare_postpro.py \
+  --tag hprom_local_4_vs_hdm \
+  --reference HDM:simulations/run.fom/postpro \
+  --model HPROM-LOCAL-4:simulations/run.post_hrom_local.9999.01/postpro
+```
+
+![HPROM-LOCAL-4 vs HDM (Drag)](simulations/postpro_compare/hprom_local_4_vs_hdm_drag_lx.png)
+
 
 
 ## Quadratic PROM
