@@ -130,12 +130,50 @@ python3 simulations/plot_compare_postpro.py \
 
 ## Quadratic PROM
 
-This section is intentionally left as a **placeholder** in this tutorial version.
+This is the **nonlocal quadratic** workflow (single cluster, no local clustering).
 
-When you are ready, we can add:
-- exact offline generation steps,
-- exact online run steps,
-- dedicated comparison plots vs Linear/ANN/RBF/GPR.
+```bash
+# 1) Offline quadratic POD + quadratic manifold data
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_quad.9999.01
+./clean_offline_preprocessing_outputs.sh
+bash run_pod_quad.sh
+
+# 2) Build ECSW artifacts for quadratic manifold
+./clean_offline_quad_hyper_outputs.sh
+bash run_hyper_quad.sh
+
+# 3) HROM mesh preprocessing (splits ROB, ref, and QROB)
+cd /home/kratos/aero-f_rom_turorial
+./clean.hrom_quad.sh
+bash preprocess.hrom_quad.sh
+
+# 4) Quadratic ROM online
+cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_quad.9999
+./clean_rom_quad_run_outputs.sh
+bash run_rom_quad.sh
+
+# 5) Quadratic HROM online
+cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_quad.9999.01
+./clean_hrom_quad_run_outputs.sh
+bash run_hrom_quad.sh
+
+# 6) Quadratic HROM postprocessing
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_quad.9999.01
+./clean_post_hrom_quad_run_outputs.sh
+bash run_post_hrom_quad.sh
+```
+
+Quick plot vs HDM for this section:
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+python3 simulations/plot_compare_postpro.py \
+  --tag hprom_quad_vs_hdm \
+  --reference HDM:simulations/run.fom/postpro \
+  --model HPROM-QUAD:simulations/run.post_hrom_quad.9999.01/postpro
+```
+
+![HPROM-QUAD vs HDM (Drag)](simulations/postpro_compare/hprom_quad_vs_hdm_drag_lx.png)
 
 ## PROM-ANN
 

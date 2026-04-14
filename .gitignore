@@ -72,3 +72,6 @@ simulations/**/nonlinearrom/**
 !xp2exo_bundle/lib/*.so
 !xp2exo_bundle/lib/*.so.*
 xp2exo_bundle.tgz
+
+# Downloaded external reference material
+reference/**
