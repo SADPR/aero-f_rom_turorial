@@ -18,7 +18,7 @@ under Input {
 under NonlinearRomFileSystem {
   TopLevelDirectory = "nonlinearrom";
   ClusterDirectory = "cluster";
-  NumClusters = 4;
+  NumClusters = 3;
   under Files {
     StatePrefix = "state";
     ReducedMeshPrefix = "gappy";

@@ -11,8 +11,9 @@ for 2D unsteady laminar viscous flow past a cylinder ($Re=100$).
 - [Overview](#overview)
 - [Common Setup](#common-setup)
 - [Linear PROM](#linear-prom)
-- [Local Linear PROM (4 Clusters)](#local-linear-prom-4-clusters)
+- [Local Linear PROM (3 Clusters)](#local-linear-prom-3-clusters)
 - [Quadratic PROM](#quadratic-prom)
+- [Local Quadratic PROM (3 Clusters)](#local-quadratic-prom-3-clusters)
 - [PROM-ANN](#prom-ann)
 - [PROM-RBF](#prom-rbf)
 - [PROM-GPR](#prom-gpr)
@@ -129,10 +130,10 @@ python3 simulations/plot_compare_postpro.py \
 ![HPROM-35 vs HDM (Drag)](simulations/postpro_compare/hprom_35_vs_hdm_drag_lx.png)
 
 
-## Local Linear PROM (4 Clusters)
+## Local Linear PROM (3 Clusters)
 
 This is the **local linear** workflow (multi-cluster local PROM/HROM).  
-Current local branch files are set to `NumClusters = 4`.
+Current local branch files are set to `NumClusters = 3`.
 
 ```bash
 # 1) Offline local POD
@@ -141,6 +142,7 @@ cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local.9999.01
 bash run_pod_local.sh
 
 # 2) Build local ECSW artifacts
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local.9999.01
 ./clean_offline_local_hyper_outputs.sh
 bash run_hyper_local.sh
 
@@ -170,13 +172,12 @@ Quick plot vs HDM for this section:
 ```bash
 cd /home/kratos/aero-f_rom_turorial
 python3 simulations/plot_compare_postpro.py \
-  --tag hprom_local_4_vs_hdm \
+  --tag hprom_local_3_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
-  --model HPROM-LOCAL-4:simulations/run.post_hrom_local.9999.01/postpro
+  --model HPROM-LOCAL-3:simulations/run.post_hrom_local.9999.01/postpro
 ```
 
-![HPROM-LOCAL-4 vs HDM (Drag)](simulations/postpro_compare/hprom_local_4_vs_hdm_drag_lx.png)
-
+![HPROM-LOCAL-3 vs HDM (Drag)](simulations/postpro_compare/hprom_local_3_vs_hdm_drag_lx.png)
 
 
 ## Quadratic PROM
@@ -190,6 +191,7 @@ cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_quad.9999.01
 bash run_pod_quad.sh
 
 # 2) Build ECSW artifacts for quadratic manifold
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_quad.9999.01
 ./clean_offline_quad_hyper_outputs.sh
 bash run_hyper_quad.sh
 
@@ -226,6 +228,55 @@ python3 simulations/plot_compare_postpro.py \
 
 ![HPROM-QUAD vs HDM (Drag)](simulations/postpro_compare/hprom_quad_vs_hdm_drag_lx.png)
 
+## Local Quadratic PROM (3 Clusters)
+
+This is the **local quadratic** workflow (multi-cluster local QPROM/QHPROM).  
+Current local branch files are set to `NumClusters = 3`.
+
+```bash
+# 1) Offline local quadratic POD + quadratic manifold data
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_quad.9999.01
+./clean_offline_local_quad_preprocessing_outputs.sh
+bash run_pod_local_quad.sh
+
+# 2) Build local quadratic ECSW artifacts
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_quad.9999.01
+./clean_offline_local_quad_hyper_outputs.sh
+bash run_hyper_local_quad.sh
+
+# 3) HROM-local-quad preprocess (splits ROB/ref/QROB for all clusters)
+cd /home/kratos/aero-f_rom_turorial
+./clean.hrom_local_quad.sh
+NSUB=8 bash preprocess.hrom_local_quad.sh
+
+# 4) Local quadratic ROM online
+cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local_quad.9999
+./clean_rom_local_quad_run_outputs.sh
+bash run_rom_local_quad.sh
+
+# 5) Local quadratic HROM online
+cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_local_quad.9999.01
+./clean_hrom_local_quad_run_outputs.sh
+bash run_hrom_local_quad.sh
+
+# 6) Local quadratic HROM postprocessing
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local_quad.9999.01
+./clean_post_hrom_local_quad_run_outputs.sh
+bash run_post_hrom_local_quad.sh
+```
+
+Quick plot vs HDM for this section:
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+python3 simulations/plot_compare_postpro.py \
+  --tag hprom_local_quad_3_vs_hdm \
+  --reference HDM:simulations/run.fom/postpro \
+  --model HPROM-LOCAL-QUAD-3:simulations/run.post_hrom_local_quad.9999.01/postpro
+```
+
+![HPROM-LOCAL-QUAD-3 vs HDM (Drag)](simulations/postpro_compare/hprom_local_quad_3_vs_hdm_drag_lx.png)
+
 ## PROM-ANN
 
 ANN branch (requires Torch-enabled AERO-F build):
@@ -240,6 +291,7 @@ cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_ann.9999.01
 bash run_pod_ann.sh
 
 # ANN trainer (builds s.coords from state.coords)
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_ann.9999.01
 bash run_ann_trainer.sh
 
 # ROM-ANN online

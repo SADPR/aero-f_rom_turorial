@@ -2,4 +2,4 @@
 set -euo pipefail
 
 rm -f *~
-rm -f data.hrom_ann*/*
+rm -f data.hrom_ann.9999.01/*

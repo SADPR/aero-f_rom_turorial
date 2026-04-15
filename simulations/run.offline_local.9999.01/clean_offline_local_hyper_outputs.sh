@@ -2,7 +2,9 @@
 set -euo pipefail
 
 rm -f log/*
-rm -f references/*
+if [[ -d references ]]; then
+  find references -mindepth 1 -maxdepth 1 ! -name "DEFAULT.PKG" -exec rm -rf {} +
+fi
 rm -f postpro/*
 rm -f results/*
 
@@ -17,5 +19,4 @@ rm -f nonlinearrom/gappy.dwall.reduced*
 rm -f nonlinearrom/cluster*/gappy.rob.reduced* nonlinearrom/cluster*/gappy.ref.reduced*
 rm -f nonlinearrom/cluster*/prc nonlinearrom/cluster*/state.proj
 
-rm -f *.out
 rm -f *~

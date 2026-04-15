@@ -1,6 +1,5 @@
 #!/bin/bash
- 
-rm *~
+set -euo pipefail
 
-rm data.hrom*/*
-
+rm -f *~
+rm -f data.hrom.9999.01/*

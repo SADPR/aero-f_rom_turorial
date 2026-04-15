@@ -12,7 +12,7 @@ under NonlinearRomFileSystem {
   Prefix = "../run.offline_local.9999.01/";
   TopLevelDirectory = "nonlinearrom";
   ClusterDirectory = "cluster";
-  NumClusters = 4;
+  NumClusters = 3;
   under Files {
     StatePrefix = "state";
     ReducedMeshPrefix = "gappy";
