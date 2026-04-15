@@ -30,6 +30,10 @@ data/
 
 # HROM preprocessed data directories (generated)
 data.hrom.*/
+data.hrom_10.*/
+data.hrom_quad.*/
+data.hrom_local.*/
+data.hrom_local_quad.*/
 data.hrom_ann.*/
 data.hrom_gp.*/
 data.hrom_rbf.*/

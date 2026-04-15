@@ -93,10 +93,10 @@ cd /home/kratos/aero-f_rom_turorial/simulations/run.offline.9999.01
 ./clean_offline_preprocessing_outputs.sh
 bash run_pod.sh
 
-# Online linear ROM
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom.9999
-./clean_rom_run_outputs.sh
-bash run_rom.sh
+# Optional: online linear ROM
+#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom.9999
+#./clean_rom_run_outputs.sh
+#bash run_rom.sh
 
 # Hyper-reduction artifacts (ECSW)
 cd /home/kratos/aero-f_rom_turorial/simulations/run.offline.9999.01
@@ -149,12 +149,12 @@ bash run_hyper_local.sh
 # 3) HROM-local preprocess (splits all cluster bases/references)
 cd /home/kratos/aero-f_rom_turorial
 ./clean.hrom_local.sh
-NSUB=8 bash preprocess.hrom_local.sh
+bash preprocess.hrom_local.sh
 
-# 4) Local ROM online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local.9999
-./clean_rom_local_run_outputs.sh
-bash run_rom_local.sh
+# 4) Optional: local ROM online
+#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local.9999
+#./clean_rom_local_run_outputs.sh
+#bash run_rom_local.sh
 
 # 5) Local HROM online
 cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_local.9999.01
@@ -200,10 +200,10 @@ cd /home/kratos/aero-f_rom_turorial
 ./clean.hrom_quad.sh
 bash preprocess.hrom_quad.sh
 
-# 4) Quadratic ROM online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_quad.9999
-./clean_rom_quad_run_outputs.sh
-bash run_rom_quad.sh
+# 4) Optional: quadratic ROM online
+#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_quad.9999
+#./clean_rom_quad_run_outputs.sh
+#bash run_rom_quad.sh
 
 # 5) Quadratic HROM online
 cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_quad.9999.01
@@ -247,12 +247,12 @@ bash run_hyper_local_quad.sh
 # 3) HROM-local-quad preprocess (splits ROB/ref/QROB for all clusters)
 cd /home/kratos/aero-f_rom_turorial
 ./clean.hrom_local_quad.sh
-NSUB=8 bash preprocess.hrom_local_quad.sh
+bash preprocess.hrom_local_quad.sh
 
-# 4) Local quadratic ROM online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local_quad.9999
-./clean_rom_local_quad_run_outputs.sh
-bash run_rom_local_quad.sh
+# 4) Optional: local quadratic ROM online
+#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local_quad.9999
+#./clean_rom_local_quad_run_outputs.sh
+#bash run_rom_local_quad.sh
 
 # 5) Local quadratic HROM online
 cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_local_quad.9999.01
@@ -294,10 +294,10 @@ bash run_pod_ann.sh
 cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_ann.9999.01
 bash run_ann_trainer.sh
 
-# ROM-ANN online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_ann.9999
-./clean_rom_ann_run_outputs.sh
-bash run_rom_ann.sh
+# Optional: ROM-ANN online
+#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_ann.9999
+#./clean_rom_ann_run_outputs.sh
+#bash run_rom_ann.sh
 
 # ANN hyper artifacts
 cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_ann.9999.01
@@ -355,10 +355,10 @@ cd /home/kratos/aero-f_rom_turorial
 ./clean.hrom_rbf.sh
 bash preprocess.hrom_rbf.sh
 
-# ROM-RBF
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_rbf.9999
-./clean_rom_rbf_run_outputs.sh
-bash run_rom_rbf.sh
+# Optional: ROM-RBF
+#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_rbf.9999
+#./clean_rom_rbf_run_outputs.sh
+#bash run_rom_rbf.sh
 
 # HROM-RBF + post
 cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_rbf.9999.01
@@ -405,10 +405,10 @@ cd /home/kratos/aero-f_rom_turorial
 ./clean.hrom_gp.sh
 bash preprocess.hrom_gp.sh
 
-# ROM-GPR
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_gp.9999
-./clean_rom_gp_run_outputs.sh
-bash run_rom_gp.sh
+# Optional: ROM-GPR
+#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_gp.9999
+#./clean_rom_gp_run_outputs.sh
+#bash run_rom_gp.sh
 
 # HROM-GPR + post
 cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_gp.9999.01
@@ -449,10 +449,10 @@ cd /home/kratos/aero-f_rom_turorial
 ./clean.hrom_10.sh
 bash preprocess.hrom_10.sh
 
-# PROM-10 online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom.9999_10
-./clean_rom_run_outputs.sh
-bash run_rom.sh
+# Optional: PROM-10 online
+#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom.9999_10
+#./clean_rom_run_outputs.sh
+#bash run_rom.sh
 
 # HROM-10 online
 cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom.9999_10.01

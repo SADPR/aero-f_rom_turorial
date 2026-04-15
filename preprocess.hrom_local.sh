@@ -4,8 +4,7 @@ set -euo pipefail
 PARTNMESH_EXECUTABLE=/home/kratos/aero-f_rom_turorial/partnmesh
 SOWER_EXECUTABLE=/home/kratos/aero-f_rom_turorial/sower
 
-NSUB="${NSUB:-8}"
-NC=${NC:-0}
+NSUB=8
 
 NPOD=9999
 TAU=01
@@ -23,10 +22,7 @@ fi
 shopt -s nullglob
 cluster_dirs=("$DIR2"/cluster*)
 shopt -u nullglob
-if [[ "$NC" -le 0 ]]; then
-  NC=${#cluster_dirs[@]}
-fi
-
+NC=${#cluster_dirs[@]}
 
 if [[ ${#cluster_dirs[@]} -eq 0 ]]; then
   echo "ERROR: No cluster directories found under $DIR2"
