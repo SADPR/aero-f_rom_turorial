@@ -38,7 +38,7 @@ Quadratic case:
 
 $$
 \mathbf{u}(t)\approx \mathbf{u}_{\mathrm{ref}}+\mathbf{V}\mathbf{q}(t)
-+\tfrac{1}{2}\mathbf{H}\bigl(\mathbf{q}(t)\otimes\mathbf{q}(t)\bigr)
++\mathbf{H}\bigl(\mathbf{q}(t)\otimes\mathbf{q}(t)\bigr)
 $$
 
 General manifold case:
@@ -541,7 +541,7 @@ This section summarizes the ANN/GPR/RBF manifold map used in this repository wit
 
 ### Snapshot coordinates and training pairs
 
-Given snapshot states $\{\mathbf{u}^s\}_{s=1}^{N_s}$ and reference state $\mathbf{u}_{\mathrm{ref}}$, define
+Given snapshot states $\mathbf{u}^s$ for $s=1,\dots,N_s$ and reference state $\mathbf{u}_{\mathrm{ref}}$, define
 
 $$
 \mathbf{q}^s = \mathbf{V}^T(\mathbf{u}^s-\mathbf{u}_{\mathrm{ref}}),\qquad
@@ -744,14 +744,75 @@ These trainer scripts are **starting points**, not universal settings. Best choi
 
 ## ParaView (.exo)
 
+Run these after the corresponding ROM/HROM simulation has produced `results/*.bin`.
+
 ```bash
+# HDM
 cd /home/kratos/aero-f_rom_turorial/simulations/run.fom
 bash postprocess_paraview.sh
 
+# Optional: PROM linear (n=35)
 cd /home/kratos/aero-f_rom_turorial/simulations/run.rom.9999
 bash postprocess_paraview.sh
 
+# Optional: PROM linear (n=10)
+cd /home/kratos/aero-f_rom_turorial/simulations/run.rom.9999_10
+bash postprocess_paraview.sh
+
+# Optional: PROM quadratic
+cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_quad.9999
+bash postprocess_paraview.sh
+
+# Optional: PROM local linear
+cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local.9999
+bash postprocess_paraview.sh
+
+# Optional: PROM local quadratic
+cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local_quad.9999
+bash postprocess_paraview.sh
+
+# Optional: PROM-ANN
 cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_ann.9999
+bash postprocess_paraview.sh
+
+# Optional: PROM-RBF
+cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_rbf.9999
+bash postprocess_paraview.sh
+
+# Optional: PROM-GPR
+cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_gp.9999
+bash postprocess_paraview.sh
+
+# HROM linear (n=35) post folder
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom.9999.01
+bash postprocess_paraview.sh
+
+# HROM linear (n=10) post folder
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom.9999_10.01
+bash postprocess_paraview.sh
+
+# HROM quadratic post folder
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_quad.9999.01
+bash postprocess_paraview.sh
+
+# HROM local linear post folder
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local.9999.01
+bash postprocess_paraview.sh
+
+# HROM local quadratic post folder
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local_quad.9999.01
+bash postprocess_paraview.sh
+
+# HROM-ANN post folder
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_ann.9999.01
+bash postprocess_paraview.sh
+
+# HROM-RBF post folder
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_rbf.9999.01
+bash postprocess_paraview.sh
+
+# HROM-GPR post folder
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_gp.9999.01
 bash postprocess_paraview.sh
 ```
 
