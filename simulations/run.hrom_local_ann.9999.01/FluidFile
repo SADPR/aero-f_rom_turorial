@@ -1,0 +1,115 @@
+under Problem {
+  Type = UnsteadyNonlinearRom;
+  Mode = Dimensional;
+  Framework = BodyFitted;
+}
+
+under Input {
+  GeometryPrefix = "../../data.hrom_local_ann.9999.01/OUTPUT";
+}
+
+under NonlinearRomFileSystem {
+  Prefix = "../run.offline_local_ann.9999.01/";
+  TopLevelDirectory = "nonlinearrom";
+  ClusterDirectory = "cluster";
+  NumClusters = 3;
+  under Files {
+    StatePrefix = "state";
+    ReducedMeshPrefix = "gappy";
+    StateBasis = "gappy.rob.reduced";
+    StateBasisReference = "gappy.ref.reduced";
+    GeneralManifoldNeuralNetName = "../run.offline_local_ann.9999.01/nonlinearrom/cluster0/traced_model.pt";
+  }
+}
+
+under NonlinearRomOnline {
+  SystemApproximation = ECSW;
+  LeastSquaresSolver = NormalEquations;
+  MaximumEnergy = 9.999e-1;
+  FreezeJacobian = True;
+  UseGeneralManifold = True;
+  FastDistanceComparisons = On;
+  CacheLoadedClusters = True;
+}
+
+under Output {
+  under Restart {
+    Frequency = 0;
+    Prefix = "references/";
+  }
+  under NonlinearROM {
+    Prefix = "postpro/";
+    ReducedCoordinates = "ReducedCoords.out";
+  }
+}
+
+under BoundaryConditions {
+  under Inlet {
+    Type = External;
+    Mach = 0.2;
+    Alpha = 0.0;
+    Beta = 0.0;
+    Density = 1.0;
+    Pressure = 17.8571428571;
+  }
+  under Wall {
+    Type = Adiabatic;
+    Integration = Full;
+  }
+}
+
+under ReferenceState {  
+  Length = 1.0;
+}
+
+under Equations {  
+  Type = NavierStokes;   
+  under FluidModel[0] {
+    Fluid = PerfectGas;
+    under GasModel {
+      SpecificHeatRatio = 1.4;
+      IdealGasConstant = 287.1;
+    }
+  }
+  under ViscosityModel {
+    Type = Constant;
+    DynamicViscosity = 0.01;  // yields Re = 100
+  }
+  under TurbulenceClosure {
+    Type = None;
+  }
+}
+
+under Space {
+  under NavierStokes {
+    Flux = Roe;
+    Reconstruction = Linear;
+    AdvectiveOperator = FiniteVolume;
+    Limiter = None;
+    Dissipation = SecondOrder;
+    Gradient = LeastSquares;
+    Beta = 0.3333333333333333;
+    Gamma = 0.0;
+  }
+  under Boundaries {
+    Type = StegerWarming;
+  }
+}
+
+under Time {
+  MaxIts = 10000;
+  MaxTime = 150;
+  TimeStep = 0.1;
+  Type = Implicit;
+  under Implicit {
+    Type = RungeKutta2;
+    MatrixVectorProduct = Exact;
+    ExactImplementation = New;
+    under Newton {
+      MaxIts = 10;
+      Eps = 0.0001;
+      Output = "log/newton.out";
+    }
+  }
+}
+

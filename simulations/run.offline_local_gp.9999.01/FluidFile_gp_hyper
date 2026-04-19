@@ -1,0 +1,187 @@
+under Problem {
+  Type = NonlinearRomPreprocessing;
+  Mode = Dimensional;
+  Framework = BodyFitted;
+}
+
+under Input {
+  GeometryPrefix = "../../data/OUTPUT";
+  Solution = "../run.fom.startup/references/Solution.bin";
+  SolutionIndex = 1;
+  SnapshotReferenceSolution = "../run.fom.startup/references/Solution.bin";
+  SnapshotReferenceSolutionIndex = 1;
+  StateSnapshotData = "statesnapshots.txt";
+  ProjectionErrorSnapshotData = "statesnapshots.txt";
+  MeshSamplingSnapshotData = "samplingsnapshots.txt";
+}
+
+under NonlinearRomFileSystem {
+  TopLevelDirectory = "nonlinearrom";
+  ClusterDirectory = "cluster";
+  NumClusters = 3;
+  under Files {
+    StatePrefix = "state";
+    ReducedMeshPrefix = "gappy";
+    ProjectionReducedCoordinates = "prc";
+    GeneralManifoldGpName = "nonlinearrom/cluster0/";
+  }
+}
+
+under NonlinearRomPreprocessing {
+  under ConstructROB {
+    ProjectInitialCondition = True;
+    PreprocessForProjections = True;
+    under StateROB {
+      under Snapshots {
+        NormalizeSnaps = True;
+        ReferenceState = Input;
+      }
+      under Clustering {
+        UseExistingClusters = True;
+        KMeansMaxIterations = 150;
+        PercentOverlap = 10;
+      }
+      under DataCompression {
+        ComputePOD = False;
+        PODMethod = RSVD;
+        MaxEnergyRetained = 9.999e-1;
+        UseGeneralManifold = True;
+      }
+    }
+    under RelativeProjectionError {
+      ComputeProjectionError = True;
+      MaximumEnergy = 9.999e-1;
+    }
+  }
+  under ConstructReducedMesh {
+    ComputeReducedMesh = True;
+    Type = SamplingWeighting;
+    StackedTraining = Off;
+    MaximumEnergyStateBasis = 9.999e-1;
+    under SamplingWeighting {
+      Solver = QR;
+      SamplingTolerance = 0.01;
+      UseColumnScaling = False;
+      UseRowScaling = False;
+      UseCentering = False;
+    }
+  }
+}
+
+//----- Left from FOM simulation
+
+under Output {
+  under Postpro {
+    Frequency = 5;
+    Prefix = "results/";
+    LiftandDrag = "../postpro/LiftandDrag.out";
+    Pressure = "Pressure.bin";
+    Velocity = "Velocity.bin";
+    Vorticity = "Vorticity.bin";
+    CPUTiming = "../log/cputime.out";
+  }
+  under Restart {
+    Frequency = 100;
+    Prefix = "references/";
+    Solution = "Solution.bin";
+    RestartData = "Restart.data";
+  }
+  under Probes {
+    Prefix = "postpro/";
+    Pressure = "ProbePressure.out";
+    Velocity = "ProbeVelocity.out";
+    under Node1 {
+      LocationX = 5.5;
+      LocationY = 0.0;
+      LocationZ = 0.0;
+    }
+  }
+  under NonlinearROM {
+    Prefix = "snapshots/";
+    StateVector = "State.bin";
+    Frequency = 2;
+    OutputResidualSnapshotData = True;
+  }
+}
+
+under BoundaryConditions {
+  under Inlet {
+    Type = External;
+    Mach = 0.2;
+    Alpha = 0.0;
+    Beta = 0.0;
+    Density = 1.0;
+    Pressure = 17.8571428571;
+  }
+  under Wall {
+    Type = Adiabatic;
+    Integration = Full;
+  }
+}
+
+under ReferenceState {
+  Length = 1.0;
+}
+
+under Equations {
+  Type = NavierStokes;
+  under FluidModel[0] {
+    Fluid = PerfectGas;
+    under GasModel {
+      SpecificHeatRatio = 1.4;
+      IdealGasConstant = 287.1;
+    }
+  }
+  under ViscosityModel {
+    Type = Constant;
+    DynamicViscosity = 0.01;  // yields Re = 100
+  }
+  under TurbulenceClosure {
+    Type = None;
+  }
+}
+
+under Space {
+  under NavierStokes {
+    Flux = Roe;
+    Reconstruction = Linear;
+    AdvectiveOperator = FiniteVolume;
+    Limiter = None;
+    Dissipation = SecondOrder;
+    Gradient = LeastSquares;
+    Beta = 0.3333333333333333;
+    Gamma = 0.0;
+  }
+  under Boundaries {
+    Type = StegerWarming;
+  }
+}
+
+under Time {
+  MaxIts = 10000;
+  MaxTime = 150;
+  TimeStep = 0.1;
+  Type = Implicit;
+  under Implicit {
+    Type = RungeKutta2;
+    MatrixVectorProduct = Exact;
+    under Newton {
+      MaxIts = 10;
+      Eps = 0.0001;
+      Output = "log/newton.out";
+      under LinearSolver {
+        under NavierStokes {
+          Type = Gmres;
+          MaxIts = 100;
+          KrylovVectors = 100;
+          Eps = 0.0001;
+          Output = "log/gmres.out";
+          under Preconditioner {
+            Type = Ras;
+            Fill = 1;
+          }
+        }
+      }
+    }
+  }
+}

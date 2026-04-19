@@ -59,7 +59,9 @@ def main():
         sys.exit("[Error] need at least 2 columns to split into p and s")
 
     print(f"[Info] total columns = {TOTAL_COLS}")
-    p_size = 10
+    p_size = int(os.environ.get("RBF_P_SIZE", "10"))
+    if p_size <= 0:
+        sys.exit(f"[Error] RBF_P_SIZE must be positive; got {p_size}")
     if TOTAL_COLS <= p_size:
         sys.exit(f"[Error] need more than {p_size} columns in {args.data_file}; got {TOTAL_COLS}")
     s_size = TOTAL_COLS - p_size
@@ -151,7 +153,7 @@ def main():
         f.write(best_kernel + "\n")
         f.write(f"{best_eps:.16e}\n")
 
-    print(f"\n[Done] fixed p=10, RelL2={best_err*100:.2f}%")
+    print(f"\n[Done] fixed p={p_size}, RelL2={best_err*100:.2f}%")
 
 if __name__ == "__main__":
     main()

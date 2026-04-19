@@ -17,6 +17,9 @@ for 2D unsteady laminar viscous flow past a cylinder ($Re=100$).
 - [PROM-ANN](#prom-ann)
 - [PROM-RBF](#prom-rbf)
 - [PROM-GPR](#prom-gpr)
+- [Local PROM-ANN (3 Clusters)](#local-prom-ann-3-clusters)
+- [Local PROM-RBF (3 Clusters)](#local-prom-rbf-3-clusters)
+- [Local PROM-GPR (3 Clusters)](#local-prom-gpr-3-clusters)
 - [Optional: Lower-Bound Comparison (Linear PROM n=10)](#optional-lower-bound-comparison-linear-prom-n10)
 - [Unified Plotting](#unified-plotting)
 - [Machine-Learning Regression (Aero-F Notation)](#machine-learning-regression-aero-f-notation)
@@ -331,6 +334,61 @@ python3 simulations/plot_compare_postpro.py \
 
 ![HPROM-ANN-10 vs HDM (Drag)](simulations/postpro_compare/hprom_ann_10_vs_hdm_drag_lx.png)
 
+## Local PROM-ANN (3 Clusters)
+
+Local ANN workflow (multi-cluster local manifold PROM/HROM):
+- Requires Torch-enabled AERO-F build.
+- Uses `NumClusters = 3` and trains one ANN per cluster.
+- Local default split: `p=5`, with `s` inferred per cluster from `state.coords`.
+
+```bash
+# 1) Offline local ANN POD base
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_ann.9999.01
+./clean_offline_local_ann_preprocessing_outputs.sh
+bash run_pod_local_ann.sh
+
+# 2) Train ANN manifolds for all clusters
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_ann.9999.01
+bash run_ann_trainer.sh
+
+# 3) Build local ANN ECSW artifacts
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_ann.9999.01
+./clean_offline_local_ann_hyper_outputs.sh
+bash run_hyper_local_ann.sh
+
+# 4) HROM-local-ANN preprocess
+cd /home/kratos/aero-f_rom_turorial
+./clean.hrom_local_ann.sh
+bash preprocess.hrom_local_ann.sh
+
+# 5) Optional: local ANN ROM online
+#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local_ann.9999
+#./clean_rom_local_ann_run_outputs.sh
+#bash run_rom_local_ann.sh
+
+# 6) Local ANN HROM online
+cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_local_ann.9999.01
+./clean_hrom_local_ann_run_outputs.sh
+bash run_hrom_local_ann.sh
+
+# 7) Local ANN HROM postprocessing
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local_ann.9999.01
+./clean_post_hrom_local_ann_run_outputs.sh
+bash run_post_hrom_local_ann.sh
+```
+
+Quick plot vs HDM for this section:
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+python3 simulations/plot_compare_postpro.py \
+  --tag hprom_local_ann_vs_hdm \
+  --reference HDM:simulations/run.fom/postpro \
+  --model HPROM-LOCAL-ANN:simulations/run.post_hrom_local_ann.9999.01/postpro
+```
+
+![HPROM-LOCAL-ANN vs HDM (Drag)](simulations/postpro_compare/hprom_local_ann_vs_hdm_drag_lx.png)
+
 
 ## PROM-RBF
 
@@ -382,6 +440,61 @@ python3 simulations/plot_compare_postpro.py \
 
 ![HPROM-RBF-10 vs HDM (Drag)](simulations/postpro_compare/hprom_rbf_10_vs_hdm_drag_lx.png)
 
+## Local PROM-RBF (3 Clusters)
+
+Local RBF workflow (multi-cluster local manifold PROM/HROM):
+- Uses `NumClusters = 3`.
+- Trains one RBF model per cluster.
+- Local default split: `p=5`, with `s` inferred per cluster from `state.coords`.
+
+```bash
+# 1) Offline local RBF POD base
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_rbf.9999.01
+./clean_offline_local_rbf_preprocessing_outputs.sh
+bash run_pod_local_rbf.sh
+
+# 2) Train RBF manifolds for all clusters
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_rbf.9999.01
+bash run_rbf_trainer.sh
+
+# 3) Build local RBF ECSW artifacts
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_rbf.9999.01
+./clean_offline_local_rbf_hyper_outputs.sh
+bash run_hyper_local_rbf.sh
+
+# 4) HROM-local-RBF preprocess
+cd /home/kratos/aero-f_rom_turorial
+./clean.hrom_local_rbf.sh
+bash preprocess.hrom_local_rbf.sh
+
+# 5) Optional: local RBF ROM online
+#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local_rbf.9999
+#./clean_rom_local_rbf_run_outputs.sh
+#bash run_rom_local_rbf.sh
+
+# 6) Local RBF HROM online
+cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_local_rbf.9999.01
+./clean_hrom_local_rbf_run_outputs.sh
+bash run_hrom_local_rbf.sh
+
+# 7) Local RBF HROM postprocessing
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local_rbf.9999.01
+./clean_post_hrom_local_rbf_run_outputs.sh
+bash run_post_hrom_local_rbf.sh
+```
+
+Quick plot vs HDM for this section:
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+python3 simulations/plot_compare_postpro.py \
+  --tag hprom_local_rbf_vs_hdm \
+  --reference HDM:simulations/run.fom/postpro \
+  --model HPROM-LOCAL-RBF:simulations/run.post_hrom_local_rbf.9999.01/postpro
+```
+
+![HPROM-LOCAL-RBF vs HDM (Drag)](simulations/postpro_compare/hprom_local_rbf_vs_hdm_drag_lx.png)
+
 
 ## PROM-GPR
 
@@ -431,6 +544,61 @@ python3 simulations/plot_compare_postpro.py \
 ```
 
 ![HPROM-GPR-10 vs HDM (Drag)](simulations/postpro_compare/hprom_gpr_10_vs_hdm_drag_lx.png)
+
+## Local PROM-GPR (3 Clusters)
+
+Local GPR workflow (multi-cluster local manifold PROM/HROM):
+- Uses `NumClusters = 3`.
+- Trains one GPR model per cluster.
+- Local default split: `p=5`, with `s` inferred per cluster from `state.coords`.
+
+```bash
+# 1) Offline local GPR POD base
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_gp.9999.01
+./clean_offline_local_gp_preprocessing_outputs.sh
+bash run_pod_local_gp.sh
+
+# 2) Train GPR manifolds for all clusters
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_gp.9999.01
+bash run_gp_trainer.sh
+
+# 3) Build local GPR ECSW artifacts
+cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_gp.9999.01
+./clean_offline_local_gp_hyper_outputs.sh
+bash run_hyper_local_gp.sh
+
+# 4) HROM-local-GPR preprocess
+cd /home/kratos/aero-f_rom_turorial
+./clean.hrom_local_gp.sh
+bash preprocess.hrom_local_gp.sh
+
+# 5) Optional: local GPR ROM online
+#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local_gp.9999
+#./clean_rom_local_gp_run_outputs.sh
+#bash run_rom_local_gp.sh
+
+# 6) Local GPR HROM online
+cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_local_gp.9999.01
+./clean_hrom_local_gp_run_outputs.sh
+bash run_hrom_local_gp.sh
+
+# 7) Local GPR HROM postprocessing
+cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local_gp.9999.01
+./clean_post_hrom_local_gp_run_outputs.sh
+bash run_post_hrom_local_gp.sh
+```
+
+Quick plot vs HDM for this section:
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+python3 simulations/plot_compare_postpro.py \
+  --tag hprom_local_gpr_vs_hdm \
+  --reference HDM:simulations/run.fom/postpro \
+  --model HPROM-LOCAL-GPR:simulations/run.post_hrom_local_gp.9999.01/postpro
+```
+
+![HPROM-LOCAL-GPR vs HDM (Drag)](simulations/postpro_compare/hprom_local_gpr_vs_hdm_drag_lx.png)
 
 
 ## Optional: Lower-Bound Comparison (Linear PROM n=10)
