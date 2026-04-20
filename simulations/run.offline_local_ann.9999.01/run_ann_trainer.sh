@@ -6,7 +6,7 @@ TRAINERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/trainers"
 ANN_TRAINER="${ANN_TRAINER:-$TRAINERS_DIR/prom-ann-trainer.py}"
 
 # Local defaults: p = 2; s is inferred per cluster from state.coords
-ANN_INPUT_SIZE="${ANN_INPUT_SIZE:-2}"
+ANN_INPUT_SIZE="${ANN_INPUT_SIZE:-3}"
 ANN_OUTPUT_SIZE="${ANN_OUTPUT_SIZE:-}"
 
 if [[ "$ANN_TRAINER" != /* && -f "$TRAINERS_DIR/$ANN_TRAINER" ]]; then

@@ -339,7 +339,7 @@ python3 simulations/plot_compare_postpro.py \
 Local ANN workflow (multi-cluster local manifold PROM/HROM):
 - Requires Torch-enabled AERO-F build.
 - Uses `NumClusters = 3` and trains one ANN per cluster.
-- Local default split: `p=2`, with `s` inferred per cluster from `state.coords`.
+- Local default split: `p=3`, with `s` inferred per cluster from `state.coords`.
 
 ```bash
 # 1) Offline local ANN POD base
@@ -445,7 +445,7 @@ python3 simulations/plot_compare_postpro.py \
 Local RBF workflow (multi-cluster local manifold PROM/HROM):
 - Uses `NumClusters = 3`.
 - Trains one RBF model per cluster.
-- Local default split: `p=2`, with `s` inferred per cluster from `state.coords`.
+- Local default split: `p=3`, with `s` inferred per cluster from `state.coords`.
 
 ```bash
 # 1) Offline local RBF POD base
@@ -550,7 +550,7 @@ python3 simulations/plot_compare_postpro.py \
 Local GPR workflow (multi-cluster local manifold PROM/HROM):
 - Uses `NumClusters = 3`.
 - Trains one GPR model per cluster.
-- Local default split: `p=2`, with `s` inferred per cluster from `state.coords`.
+- Local default split: `p=3`, with `s` inferred per cluster from `state.coords`.
 
 ```bash
 # 1) Offline local GPR POD base

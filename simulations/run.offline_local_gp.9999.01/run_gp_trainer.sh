@@ -6,7 +6,7 @@ TRAINERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/trainers"
 GP_TRAINER="${GP_TRAINER:-$TRAINERS_DIR/prom-gp-trainer_std.py}"
 
 # Local defaults: p = 2; s is inferred per cluster from state.coords
-GP_INPUT_SIZE="${GP_INPUT_SIZE:-2}"
+GP_INPUT_SIZE="${GP_INPUT_SIZE:-3}"
 GP_OUTPUT_SIZE="${GP_OUTPUT_SIZE:-}"
 
 if [[ "$GP_TRAINER" != /* && -f "$TRAINERS_DIR/$GP_TRAINER" ]]; then
