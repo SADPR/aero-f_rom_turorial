@@ -175,12 +175,12 @@ Quick plot vs HDM for this section:
 ```bash
 cd /home/kratos/aero-f_rom_turorial
 python3 simulations/plot_compare_postpro.py \
-  --tag hprom_local_3_vs_hdm \
+  --tag hprom_local_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
-  --model HPROM-LOCAL-3:simulations/run.post_hrom_local.9999.01/postpro
+  --model HPROM-LOCAL:simulations/run.post_hrom_local.9999.01/postpro
 ```
 
-![HPROM-LOCAL-3 vs HDM (Drag)](simulations/postpro_compare/hprom_local_3_vs_hdm_drag_lx.png)
+![HPROM-LOCAL vs HDM (Drag)](simulations/postpro_compare/hprom_local_vs_hdm_drag_lx.png)
 
 
 ## Quadratic PROM
@@ -273,12 +273,12 @@ Quick plot vs HDM for this section:
 ```bash
 cd /home/kratos/aero-f_rom_turorial
 python3 simulations/plot_compare_postpro.py \
-  --tag hprom_local_quad_3_vs_hdm \
+  --tag hprom_local_quad_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
-  --model HPROM-LOCAL-QUAD-3:simulations/run.post_hrom_local_quad.9999.01/postpro
+  --model HPROM-LOCAL-QUAD:simulations/run.post_hrom_local_quad.9999.01/postpro
 ```
 
-![HPROM-LOCAL-QUAD-3 vs HDM (Drag)](simulations/postpro_compare/hprom_local_quad_3_vs_hdm_drag_lx.png)
+![HPROM-LOCAL-QUAD vs HDM (Drag)](simulations/postpro_compare/hprom_local_quad_vs_hdm_drag_lx.png)
 
 ## PROM-ANN
 
