@@ -46,6 +46,7 @@ under NonlinearRomPreprocessing {
           ComputeQuadraticManifold = True;
           UseQuadraticManifold = True;
           QuadraticRomSingularValueSamplingFraction = 0.6;
+          QuadraticManifoldSingularValueDelta = 0.01;
           ComputeQuadraticSize = True;
           ComputeQuadraticSingularValueTolerance = True;
           RegularizationCriterion = GCV;

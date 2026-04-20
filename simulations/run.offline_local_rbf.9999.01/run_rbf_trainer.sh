@@ -5,8 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TRAINERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/trainers"
 RBF_TRAINER="${RBF_TRAINER:-$TRAINERS_DIR/prom-rbf-trainer.py}"
 
-# Local default: p = 5 (trainer derives s = total_cols - p)
-RBF_P_SIZE="${RBF_P_SIZE:-5}"
+# Local default: p = 2 (trainer derives s = total_cols - p)
+RBF_P_SIZE="${RBF_P_SIZE:-2}"
 
 if [[ "$RBF_TRAINER" != /* && -f "$TRAINERS_DIR/$RBF_TRAINER" ]]; then
   RBF_TRAINER="$TRAINERS_DIR/$RBF_TRAINER"

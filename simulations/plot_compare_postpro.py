@@ -128,28 +128,66 @@ def _has_number_token(label: str, number: int) -> bool:
     return re.search(rf"(?<!\d){number}(?!\d)", label) is not None
 
 
-def _preferred_model_color(model_label: str) -> str | None:
+def _tokenized(label: str) -> List[str]:
+    return [t for t in re.split(r"[^a-z0-9]+", label.lower()) if t]
+
+
+def _extract_size_suffix(label: str) -> str:
+    m = re.search(r"(?:^|[\W_])(\d+)(?:$|[\W_])", label)
+    if m:
+        return f"-{m.group(1)}"
+    return ""
+
+
+def _canonical_model_label(model_label: str) -> str:
     lower = model_label.lower()
+    toks = _tokenized(model_label)
+    tokset = set(toks)
 
-    # Manifold-family fixed colors
-    if "ann" in lower:
-        return "tab:red"
-    if "rbf" in lower:
-        return "tab:blue"
-    if "gpr" in lower or re.search(r"(?<![a-z])gp(?![a-z])", lower):
-        return "tab:green"
-    if "quad" in lower or "qprom" in lower:
-        return "magenta"
+    is_local = "local" in tokset
+    is_h = any(t in tokset for t in ("hprom", "hrom", "hpromlocal")) or ("hprom" in lower or "hrom" in lower)
+    is_p = any(t in tokset for t in ("prom", "rom", "promlocal")) or ("prom" in lower or "rom" in lower)
 
-    # Linear-family fixed colors
-    if any(tok in lower for tok in ("hprom", "hrom", "prom", "rom")):
-        if _has_number_token(lower, 10):
-            return "tab:purple"
-        if _has_number_token(lower, 35):
-            return "darkgoldenrod"
-        return "darkgoldenrod"
+    if not (is_h or is_p):
+        return model_label
 
-    # Unknown label -> let matplotlib default cycle decide.
+    # HPROM/PROM base for canonical naming
+    base = "HPROM" if is_h else "PROM"
+    local_prefix = "Local-" if is_local else ""
+    size_suffix = _extract_size_suffix(model_label)
+
+    # Quadratic family uses QPROM/HQPROM nomenclature
+    if "quad" in tokset or "qprom" in tokset or "hqprom" in tokset or "quadratic" in tokset:
+        qbase = "HQPROM" if is_h else "QPROM"
+        return f"{local_prefix}{qbase}{size_suffix}"
+
+    # Data-driven closures
+    if "gpr" in tokset or "gp" in tokset:
+        return f"{local_prefix}{base}-GPR{size_suffix}"
+    if "rbf" in tokset:
+        return f"{local_prefix}{base}-RBF{size_suffix}"
+    if "ann" in tokset or "dl" in tokset:
+        return f"{local_prefix}{base}-ANN{size_suffix}"
+
+    # Linear affine family
+    return f"{local_prefix}{base}{size_suffix}"
+
+
+def _preferred_model_color(model_label: str) -> str | None:
+    # Burgers workbench-like color direction:
+    # linear = dark yellow, quadratic = blue, GPR = green, ANN = red, RBF = teal.
+    c = _canonical_model_label(model_label).lower()
+
+    if "ann" in c:
+        return "#d62728"  # red
+    if "gpr" in c:
+        return "#228B22"  # forest green
+    if "rbf" in c:
+        return "#0a8f5a"  # teal-green
+    if "qprom" in c:
+        return "#1f77b4"  # blue
+    if "prom" in c:
+        return "#B8860B"  # dark goldenrod
     return None
 
 
@@ -222,12 +260,13 @@ def compare(
             model_y = model[:, col_idx]
             metrics = _compute_error(ref_t, ref_y, model_t, model_y)
             rel_l2_pct = 100.0 * metrics["rel_l2"]
+            display_label = _canonical_model_label(model_label)
 
             summary_rows.append(
                 {
                     "signal": title,
                     "reference": ref_label,
-                    "model": model_label,
+                    "model": display_label,
                     "time_start": metrics["t_min"],
                     "time_end": metrics["t_max"],
                     "rmse": metrics["rmse"],
@@ -237,8 +276,8 @@ def compare(
                 }
             )
 
-            legend_label = _format_rel_l2_label(model_label, rel_l2_pct, latex_enabled)
-            color = _preferred_model_color(model_label)
+            legend_label = _format_rel_l2_label(display_label, rel_l2_pct, latex_enabled)
+            color = _preferred_model_color(display_label)
             plot_kwargs = {
                 "linewidth": 1.4,
                 "linestyle": model_styles[m_idx % len(model_styles)],

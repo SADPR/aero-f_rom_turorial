@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLUSTER_DIR="$SCRIPT_DIR/nonlinearrom/cluster0"
 TRAINERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/trainers"
 RBF_TRAINER="${RBF_TRAINER:-$TRAINERS_DIR/prom-rbf-trainer.py}"
+RBF_P_SIZE="${RBF_P_SIZE:-5}"
 
 if [[ "$RBF_TRAINER" != /* && -f "$TRAINERS_DIR/$RBF_TRAINER" ]]; then
   RBF_TRAINER="$TRAINERS_DIR/$RBF_TRAINER"
@@ -25,9 +26,19 @@ fi
 
 tail -n +2 "$CLUSTER_DIR/state.coords" > "$CLUSTER_DIR/s.coords"
 
-echo "Using trainer: $RBF_TRAINER"
+total_cols="$(awk 'NR==1{print NF; exit}' "$CLUSTER_DIR/s.coords")"
+if [[ -z "$total_cols" || ! "$total_cols" =~ ^[0-9]+$ ]]; then
+  echo "ERROR: Could not infer coordinate dimension from $CLUSTER_DIR/s.coords"
+  exit 1
+fi
+if (( total_cols <= RBF_P_SIZE )); then
+  echo "ERROR: total cols=$total_cols <= RBF_P_SIZE=$RBF_P_SIZE"
+  exit 1
+fi
+
+echo "Using trainer: $RBF_TRAINER (p=$RBF_P_SIZE, s=$((total_cols - RBF_P_SIZE)))"
 cd "$CLUSTER_DIR"
-python3 "$RBF_TRAINER" |& tee log_rbf_training.out
+RBF_P_SIZE="$RBF_P_SIZE" python3 "$RBF_TRAINER" |& tee log_rbf_training.out
 
 for req in rbf_precomputations.txt rbf_xTrain.txt rbf_stdscaling.txt rbf_hyper.txt; do
   if [[ ! -f "$req" ]]; then

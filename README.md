@@ -177,10 +177,10 @@ cd /home/kratos/aero-f_rom_turorial
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_local_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
-  --model HPROM-LOCAL:simulations/run.post_hrom_local.9999.01/postpro
+  --model Local-HPROM:simulations/run.post_hrom_local.9999.01/postpro
 ```
 
-![HPROM-LOCAL vs HDM (Drag)](simulations/postpro_compare/hprom_local_vs_hdm_drag_lx.png)
+![Local-HPROM vs HDM (Drag)](simulations/postpro_compare/hprom_local_vs_hdm_drag_lx.png)
 
 
 ## Quadratic PROM
@@ -226,14 +226,14 @@ cd /home/kratos/aero-f_rom_turorial
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_quad_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
-  --model HPROM-QUAD:simulations/run.post_hrom_quad.9999.01/postpro
+  --model HQPROM:simulations/run.post_hrom_quad.9999.01/postpro
 ```
 
-![HPROM-QUAD vs HDM (Drag)](simulations/postpro_compare/hprom_quad_vs_hdm_drag_lx.png)
+![HQPROM vs HDM (Drag)](simulations/postpro_compare/hprom_quad_vs_hdm_drag_lx.png)
 
 ## Local Quadratic PROM (3 Clusters)
 
-This is the **local quadratic** workflow (multi-cluster local QPROM/QHPROM).  
+This is the **local quadratic** workflow (multi-cluster local QPROM/HQPROM).  
 Current local branch files are set to `NumClusters = 3`.
 
 ```bash
@@ -275,10 +275,10 @@ cd /home/kratos/aero-f_rom_turorial
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_local_quad_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
-  --model HPROM-LOCAL-QUAD:simulations/run.post_hrom_local_quad.9999.01/postpro
+  --model Local-HQPROM:simulations/run.post_hrom_local_quad.9999.01/postpro
 ```
 
-![HPROM-LOCAL-QUAD vs HDM (Drag)](simulations/postpro_compare/hprom_local_quad_vs_hdm_drag_lx.png)
+![Local-HQPROM vs HDM (Drag)](simulations/postpro_compare/hprom_local_quad_vs_hdm_drag_lx.png)
 
 ## PROM-ANN
 
@@ -327,19 +327,19 @@ Quick plot vs HDM for this section:
 ```bash
 cd /home/kratos/aero-f_rom_turorial
 python3 simulations/plot_compare_postpro.py \
-  --tag hprom_ann_10_vs_hdm \
+  --tag hprom_ann_5_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
-  --model HPROM-ANN-10:simulations/run.post_hrom_ann.9999.01/postpro
+  --model HPROM-ANN-5:simulations/run.post_hrom_ann.9999.01/postpro
 ```
 
-![HPROM-ANN-10 vs HDM (Drag)](simulations/postpro_compare/hprom_ann_10_vs_hdm_drag_lx.png)
+![HPROM-ANN-5 vs HDM (Drag)](simulations/postpro_compare/hprom_ann_5_vs_hdm_drag_lx.png)
 
 ## Local PROM-ANN (3 Clusters)
 
 Local ANN workflow (multi-cluster local manifold PROM/HROM):
 - Requires Torch-enabled AERO-F build.
 - Uses `NumClusters = 3` and trains one ANN per cluster.
-- Local default split: `p=5`, with `s` inferred per cluster from `state.coords`.
+- Local default split: `p=2`, with `s` inferred per cluster from `state.coords`.
 
 ```bash
 # 1) Offline local ANN POD base
@@ -384,17 +384,17 @@ cd /home/kratos/aero-f_rom_turorial
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_local_ann_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
-  --model HPROM-LOCAL-ANN:simulations/run.post_hrom_local_ann.9999.01/postpro
+  --model Local-HPROM-ANN:simulations/run.post_hrom_local_ann.9999.01/postpro
 ```
 
-![HPROM-LOCAL-ANN vs HDM (Drag)](simulations/postpro_compare/hprom_local_ann_vs_hdm_drag_lx.png)
+![Local-HPROM-ANN vs HDM (Drag)](simulations/postpro_compare/hprom_local_ann_vs_hdm_drag_lx.png)
 
 
 ## PROM-RBF
 
 RBF branch (reuses baseline offline POD data):
 - Trainer scripts are centralized in `simulations/trainers/`; wrappers load them automatically.
-- This workflow is configured for a fixed primary size `p=10` (`s=25` for this case).
+- This workflow is configured for a fixed primary size `p=5` (`s=30` for this case).
 
 ```bash
 # Ensure baseline POD exists
@@ -433,19 +433,19 @@ Quick plot vs HDM for this section:
 ```bash
 cd /home/kratos/aero-f_rom_turorial
 python3 simulations/plot_compare_postpro.py \
-  --tag hprom_rbf_10_vs_hdm \
+  --tag hprom_rbf_5_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
-  --model HPROM-RBF-10:simulations/run.post_hrom_rbf.9999.01/postpro
+  --model HPROM-RBF-5:simulations/run.post_hrom_rbf.9999.01/postpro
 ```
 
-![HPROM-RBF-10 vs HDM (Drag)](simulations/postpro_compare/hprom_rbf_10_vs_hdm_drag_lx.png)
+![HPROM-RBF-5 vs HDM (Drag)](simulations/postpro_compare/hprom_rbf_5_vs_hdm_drag_lx.png)
 
 ## Local PROM-RBF (3 Clusters)
 
 Local RBF workflow (multi-cluster local manifold PROM/HROM):
 - Uses `NumClusters = 3`.
 - Trains one RBF model per cluster.
-- Local default split: `p=5`, with `s` inferred per cluster from `state.coords`.
+- Local default split: `p=2`, with `s` inferred per cluster from `state.coords`.
 
 ```bash
 # 1) Offline local RBF POD base
@@ -490,10 +490,10 @@ cd /home/kratos/aero-f_rom_turorial
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_local_rbf_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
-  --model HPROM-LOCAL-RBF:simulations/run.post_hrom_local_rbf.9999.01/postpro
+  --model Local-HPROM-RBF:simulations/run.post_hrom_local_rbf.9999.01/postpro
 ```
 
-![HPROM-LOCAL-RBF vs HDM (Drag)](simulations/postpro_compare/hprom_local_rbf_vs_hdm_drag_lx.png)
+![Local-HPROM-RBF vs HDM (Drag)](simulations/postpro_compare/hprom_local_rbf_vs_hdm_drag_lx.png)
 
 
 ## PROM-GPR
@@ -538,19 +538,19 @@ Quick plot vs HDM for this section:
 ```bash
 cd /home/kratos/aero-f_rom_turorial
 python3 simulations/plot_compare_postpro.py \
-  --tag hprom_gpr_10_vs_hdm \
+  --tag hprom_gpr_5_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
-  --model HPROM-GPR-10:simulations/run.post_hrom_gp.9999.01/postpro
+  --model HPROM-GPR-5:simulations/run.post_hrom_gp.9999.01/postpro
 ```
 
-![HPROM-GPR-10 vs HDM (Drag)](simulations/postpro_compare/hprom_gpr_10_vs_hdm_drag_lx.png)
+![HPROM-GPR-5 vs HDM (Drag)](simulations/postpro_compare/hprom_gpr_5_vs_hdm_drag_lx.png)
 
 ## Local PROM-GPR (3 Clusters)
 
 Local GPR workflow (multi-cluster local manifold PROM/HROM):
 - Uses `NumClusters = 3`.
 - Trains one GPR model per cluster.
-- Local default split: `p=5`, with `s` inferred per cluster from `state.coords`.
+- Local default split: `p=2`, with `s` inferred per cluster from `state.coords`.
 
 ```bash
 # 1) Offline local GPR POD base
@@ -595,10 +595,10 @@ cd /home/kratos/aero-f_rom_turorial
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_local_gpr_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
-  --model HPROM-LOCAL-GPR:simulations/run.post_hrom_local_gp.9999.01/postpro
+  --model Local-HPROM-GPR:simulations/run.post_hrom_local_gp.9999.01/postpro
 ```
 
-![HPROM-LOCAL-GPR vs HDM (Drag)](simulations/postpro_compare/hprom_local_gpr_vs_hdm_drag_lx.png)
+![Local-HPROM-GPR vs HDM (Drag)](simulations/postpro_compare/hprom_local_gpr_vs_hdm_drag_lx.png)
 
 
 ## Optional: Lower-Bound Comparison (Linear PROM n=10)
@@ -652,13 +652,14 @@ python3 simulations/plot_compare_postpro.py \
 Use one script only:
 - `simulations/plot_compare_postpro.py`
 
-Default consistent colors in plots:
-- `PROM/HPROM-ANN`: red
-- `PROM/HPROM-RBF`: blue
-- `PROM/HPROM-GPR`: green
-- `PROM/HPROM-35` (linear baseline): dark yellow (`darkgoldenrod`)
-- `PROM/HPROM-10` (linear lower bound): purple
-- `QPROM` / quadratic labels: magenta
+Legend/style conventions (Burgers-workbench-like):
+- Labels are auto-normalized to canonical names such as `PROM`, `HPROM`, `QPROM`, `HQPROM`, `Local-PROM`, `Local-HQPROM`, `PROM-GPR`, `Local-HPROM-ANN`, etc.
+- Colors are fixed by family:
+  - linear `PROM/HPROM`: dark yellow (`#B8860B`)
+  - quadratic `QPROM/HQPROM`: blue (`#1f77b4`)
+  - `GPR`: green (`#228B22`)
+  - `RBF`: teal-green (`#0a8f5a`)
+  - `ANN`: red (`#d62728`)
 
 Baseline (linear reference):
 
@@ -679,9 +680,9 @@ python3 simulations/plot_compare_postpro.py \
   --reference HDM:simulations/run.fom/postpro \
   --model HPROM-35:simulations/run.post_hrom.9999.01/postpro \
   --model HPROM-10:simulations/run.post_hrom.9999_10.01/postpro \
-  --model HPROM-ANN-10:simulations/run.post_hrom_ann.9999.01/postpro \
-  --model HPROM-RBF-10:simulations/run.post_hrom_rbf.9999.01/postpro \
-  --model HPROM-GPR-10:simulations/run.post_hrom_gp.9999.01/postpro
+  --model HPROM-ANN-5:simulations/run.post_hrom_ann.9999.01/postpro \
+  --model HPROM-RBF-5:simulations/run.post_hrom_rbf.9999.01/postpro \
+  --model HPROM-GPR-5:simulations/run.post_hrom_gp.9999.01/postpro
 ```
 
 ROM-family comparison with HDM reference:
@@ -693,9 +694,35 @@ python3 simulations/plot_compare_postpro.py \
   --reference HDM:simulations/run.fom/postpro \
   --model PROM-35:simulations/run.rom.9999/postpro \
   --model PROM-10:simulations/run.rom.9999_10/postpro \
-  --model PROM-ANN-10:simulations/run.rom_ann.9999/postpro \
-  --model PROM-RBF-10:simulations/run.rom_rbf.9999/postpro \
-  --model PROM-GPR-10:simulations/run.rom_gp.9999/postpro
+  --model PROM-ANN-5:simulations/run.rom_ann.9999/postpro \
+  --model PROM-RBF-5:simulations/run.rom_rbf.9999/postpro \
+  --model PROM-GPR-5:simulations/run.rom_gp.9999/postpro
+```
+
+Regenerate all key comparison plots from existing postpro folders:
+
+```bash
+cd /home/kratos/aero-f_rom_turorial
+
+python3 simulations/plot_compare_postpro.py --tag hprom_35_vs_hdm --reference HDM:simulations/run.fom/postpro --model HPROM-35:simulations/run.post_hrom.9999.01/postpro
+python3 simulations/plot_compare_postpro.py --tag hprom_10_vs_hdm --reference HDM:simulations/run.fom/postpro --model HPROM-10:simulations/run.post_hrom.9999_10.01/postpro
+python3 simulations/plot_compare_postpro.py --tag hprom_local_vs_hdm --reference HDM:simulations/run.fom/postpro --model Local-HPROM:simulations/run.post_hrom_local.9999.01/postpro
+
+python3 simulations/plot_compare_postpro.py --tag hprom_quad_vs_hdm --reference HDM:simulations/run.fom/postpro --model HQPROM:simulations/run.post_hrom_quad.9999.01/postpro
+python3 simulations/plot_compare_postpro.py --tag hprom_local_quad_vs_hdm --reference HDM:simulations/run.fom/postpro --model Local-HQPROM:simulations/run.post_hrom_local_quad.9999.01/postpro
+
+python3 simulations/plot_compare_postpro.py --tag hprom_ann_5_vs_hdm --reference HDM:simulations/run.fom/postpro --model HPROM-ANN-5:simulations/run.post_hrom_ann.9999.01/postpro
+python3 simulations/plot_compare_postpro.py --tag hprom_local_ann_vs_hdm --reference HDM:simulations/run.fom/postpro --model Local-HPROM-ANN:simulations/run.post_hrom_local_ann.9999.01/postpro
+
+python3 simulations/plot_compare_postpro.py --tag hprom_rbf_5_vs_hdm --reference HDM:simulations/run.fom/postpro --model HPROM-RBF-5:simulations/run.post_hrom_rbf.9999.01/postpro
+python3 simulations/plot_compare_postpro.py --tag hprom_local_rbf_vs_hdm --reference HDM:simulations/run.fom/postpro --model Local-HPROM-RBF:simulations/run.post_hrom_local_rbf.9999.01/postpro
+
+python3 simulations/plot_compare_postpro.py --tag hprom_gpr_5_vs_hdm --reference HDM:simulations/run.fom/postpro --model HPROM-GPR-5:simulations/run.post_hrom_gp.9999.01/postpro
+python3 simulations/plot_compare_postpro.py --tag hprom_local_gpr_vs_hdm --reference HDM:simulations/run.fom/postpro --model Local-HPROM-GPR:simulations/run.post_hrom_local_gp.9999.01/postpro
+
+python3 simulations/plot_compare_postpro.py --tag baseline --model PROM:simulations/run.rom.9999/postpro --model HPROM:simulations/run.post_hrom.9999.01/postpro
+python3 simulations/plot_compare_postpro.py --tag hprom_only --reference HDM:simulations/run.fom/postpro --model HPROM-35:simulations/run.post_hrom.9999.01/postpro --model HPROM-10:simulations/run.post_hrom.9999_10.01/postpro --model HPROM-ANN-5:simulations/run.post_hrom_ann.9999.01/postpro --model HPROM-RBF-5:simulations/run.post_hrom_rbf.9999.01/postpro --model HPROM-GPR-5:simulations/run.post_hrom_gp.9999.01/postpro
+python3 simulations/plot_compare_postpro.py --tag prom_only --reference HDM:simulations/run.fom/postpro --model PROM-35:simulations/run.rom.9999/postpro --model PROM-10:simulations/run.rom.9999_10/postpro --model PROM-ANN-5:simulations/run.rom_ann.9999/postpro --model PROM-RBF-5:simulations/run.rom_rbf.9999/postpro --model PROM-GPR-5:simulations/run.rom_gp.9999/postpro
 ```
 
 All outputs are written in `simulations/postpro_compare/` as:
@@ -724,7 +751,7 @@ $$
 \bar{\mathbf{q}}^s\in\mathbb{R}^{\bar n}
 $$
 
-with default $n=10$, $\bar n=25$ for ANN/RBF/GPR-10 workflows.
+with default $n=5$, $\bar n=30$ for ANN/RBF/GPR-5 workflows.
 
 The closure map is
 
@@ -889,13 +916,13 @@ These trainer scripts are **starting points**, not universal settings. Best choi
 ### ANN trainer (`prom-ann-trainer.py`)
 
 - Uses a feed-forward network with internal scaling and exports `traced_model.pt`.
-- Default dimensions in wrapper are `ANN_INPUT_SIZE=10`, `ANN_OUTPUT_SIZE=25`.
+- Default dimensions in wrapper are `ANN_INPUT_SIZE=5`, with `ANN_OUTPUT_SIZE` inferred from `state.coords` (typically `30`).
 - Main tunables are architecture, learning-rate schedule, train/test split, and number of epochs.
 
 ### RBF trainer (`prom-rbf-trainer.py`)
 
 - Performs grid-search over kernel/hyperparameters (for example `epsilon`, kernel type).
-- In this repository workflow, `run_rbf_trainer.sh` uses a trainer configured with fixed `p=10` (no `p` sweep).
+- In this repository workflow, `run_rbf_trainer.sh` uses a trainer configured with fixed `p=5` (no `p` sweep).
 - If you want a different split, edit `p_size` in `simulations/trainers/prom-rbf-trainer.py`.
 
 ### GPR trainer (`prom-gp-trainer_*.py`)
